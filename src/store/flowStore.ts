@@ -5,6 +5,8 @@ import {
   type OnNodesChange,
   type OnEdgesChange,
   type Connection,
+  type NodeChange,
+  type EdgeChange,
   applyNodeChanges,
   applyEdgeChanges,
   addEdge,
@@ -27,6 +29,7 @@ interface FlowState {
   onEdgesChange: OnEdgesChange;
   onConnect: (connection: Connection) => void;
   addNode: (node: Node) => void;
+  loadBlueprint: (nodes: Node[], edges: Edge[]) => void;
   toggleSnap: () => void;
   toggleMinimap: () => void;
   undo: () => void;
@@ -135,6 +138,8 @@ function buildEdge(conn: { source: string; target: string; sourceHandle?: string
   };
 }
 
+const draggingNodes = new Set<string>();
+
 export const useFlowStore = create<FlowState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
@@ -144,10 +149,30 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   minimapEnabled: true,
 
   onNodesChange: (changes) => {
+    const isDragStart = changes.some((c: NodeChange) =>
+      c.type === 'position' && c.dragging === true && !draggingNodes.has(c.id),
+    );
+    const isRemove = changes.some((c: NodeChange) => c.type === 'remove');
+
+    changes.forEach((c: NodeChange) => {
+      if (c.type === 'position') {
+        if (c.dragging === true) draggingNodes.add(c.id);
+        if (c.dragging === false) draggingNodes.delete(c.id);
+      }
+    });
+
+    if (isDragStart || isRemove) {
+      set({ ...saveSnapshot(get()), nodes: applyNodeChanges(changes, get().nodes) });
+      return;
+    }
     set({ nodes: applyNodeChanges(changes, get().nodes) });
   },
 
   onEdgesChange: (changes) => {
+    if (changes.some((c: EdgeChange) => c.type === 'remove')) {
+      set({ ...saveSnapshot(get()), edges: applyEdgeChanges(changes, get().edges) });
+      return;
+    }
     set({ edges: applyEdgeChanges(changes, get().edges) });
   },
 
@@ -225,6 +250,10 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       past,
       future,
     });
+  },
+
+  loadBlueprint: (newNodes, newEdges) => {
+    set({ nodes: newNodes, edges: newEdges, past: [], future: [] });
   },
 
   toggleSnap: () => set({ snapEnabled: !get().snapEnabled }),

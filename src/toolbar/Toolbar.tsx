@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { Panel } from '@xyflow/react';
 import { useReactFlow } from '@xyflow/react';
 import { useFlowStore } from '../store/flowStore';
@@ -27,6 +27,41 @@ export function Toolbar() {
   const setActiveEdge = useExecutionStore((s) => s.setActiveEdge);
   const startExecution = useExecutionStore((s) => s.startExecution);
   const stopExecution = useExecutionStore((s) => s.stopExecution);
+  const loadBlueprint = useFlowStore((s) => s.loadBlueprint);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSave = useCallback(() => {
+    const json = JSON.stringify({ nodes, edges }, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'blueprint.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [nodes, edges]);
+
+  const handleLoad = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result as string);
+        if (Array.isArray(data.nodes) && Array.isArray(data.edges)) {
+          loadBlueprint(data.nodes, data.edges);
+        }
+      } catch {
+        // ignore invalid files
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, [loadBlueprint]);
 
   const handleRun = useCallback(async () => {
     if (isExecuting) return;
@@ -80,6 +115,42 @@ export function Toolbar() {
               <path d="M17 6l4 4-4 4" />
             </svg>
           }
+        />
+
+        <div className="toolbar__separator" />
+
+        {/* Save */}
+        <ToolbarButton
+          tooltip="Save Blueprint"
+          onClick={handleSave}
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+          }
+        />
+
+        {/* Load */}
+        <ToolbarButton
+          tooltip="Load Blueprint"
+          onClick={handleLoad}
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+              <line x1="12" y1="11" x2="12" y2="17" />
+              <polyline points="9 14 12 11 15 14" />
+            </svg>
+          }
+        />
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
         />
 
         <div className="toolbar__separator" />

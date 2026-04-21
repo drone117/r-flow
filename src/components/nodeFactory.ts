@@ -402,17 +402,12 @@ export const sidebarCategories: SidebarCategory[] = [
     name: 'Events',
     items: [
       { type: 'start', label: 'Start', category: 'start' },
-      { type: 'eventBeginPlay', label: 'Event BeginPlay', category: 'event' },
-      { type: 'eventTick', label: 'Event Tick', category: 'event' },
-      { type: 'customEvent', label: 'Custom Event', category: 'event' },
     ],
   },
   {
     name: 'Functions',
     items: [
       { type: 'printString', label: 'Print String', category: 'function' },
-      { type: 'delay', label: 'Delay', category: 'function' },
-      { type: 'setTimer', label: 'Set Timer by Event', category: 'function' },
     ],
   },
   {
