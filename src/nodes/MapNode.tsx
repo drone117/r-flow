@@ -2,6 +2,7 @@ import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import type { BlueprintNodeData, PinDataType } from '../types';
 import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
+import { useExecutionStore } from '../store/executionStore';
 import './BaseNode.css';
 
 interface MapEntry {
@@ -57,10 +58,12 @@ export function MapNode({ id, data }: NodeProps) {
 
   const displayKeyType = (keyType as string).charAt(0).toUpperCase() + (keyType as string).slice(1);
   const displayValueType = (valueType as string).charAt(0).toUpperCase() + (valueType as string).slice(1);
+  const activeNodeId = useExecutionStore((s) => s.activeNodeId);
+  const isActive = activeNodeId === id;
 
   return (
     <div
-      className="blueprint-node blueprint-node--collection"
+      className={`blueprint-node blueprint-node--collection ${isActive ? 'blueprint-node--executing' : ''}`}
       style={{ '--header-color': '#e08040' } as React.CSSProperties}
     >
       <div className="blueprint-node__header">

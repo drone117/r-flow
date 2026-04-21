@@ -3,15 +3,18 @@ import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS } from '../types';
 import { ExecutionPin } from '../pins/ExecutionPin';
 import { NodeIcon } from '../components/NodeIcon';
+import { useExecutionStore } from '../store/executionStore';
 import './BaseNode.css';
 
-export function StartNode({ data }: NodeProps) {
+export function StartNode({ id, data }: NodeProps) {
   const { label, category, outputs = [] } = data as BlueprintNodeData;
   const headerColor = CATEGORY_COLORS['start'];
+  const activeNodeId = useExecutionStore((s) => s.activeNodeId);
+  const isActive = activeNodeId === id;
 
   return (
     <div
-      className="blueprint-node"
+      className={`blueprint-node ${isActive ? 'blueprint-node--executing' : ''}`}
       style={{ '--header-color': headerColor } as React.CSSProperties}
     >
       <div className="blueprint-node__header">

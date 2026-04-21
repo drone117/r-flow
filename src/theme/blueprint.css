@@ -94,6 +94,11 @@
   stroke-linecap: round;
 }
 
+@keyframes edge-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -20; }
+}
+
 /* Minimap */
 .react-flow__minimap {
   border-radius: var(--ue-node-radius);

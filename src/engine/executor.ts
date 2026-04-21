@@ -5,6 +5,13 @@ interface ExecCtx {
   nodes: Node[];
   edges: Edge[];
   emit: (msg: string) => void;
+  onNodeActive: (nodeId: string) => void;
+  onEdgeActive: (edgeId: string) => void;
+  delay: number;
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function resolveInputValue(ctx: ExecCtx, nodeId: string, handleId: string): string {
@@ -52,17 +59,20 @@ function resolveOutputValue(
   return data.values?.[handleId] ?? '';
 }
 
-function followExec(ctx: ExecCtx, nodeId: string, handleId: string): string | null {
+function followExec(ctx: ExecCtx, nodeId: string, handleId: string): { targetId: string | null; edgeId: string | null } {
   const edge = ctx.edges.find(
     (e) => e.source === nodeId && e.sourceHandle === handleId,
   );
-  return edge?.target ?? null;
+  return { targetId: edge?.target ?? null, edgeId: edge?.id ?? null };
 }
 
-function processNode(ctx: ExecCtx, nodeId: string): string | null {
+async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null> {
   const node = ctx.nodes.find((n) => n.id === nodeId);
   if (!node) return null;
   const data = node.data as BlueprintNodeData;
+
+  ctx.onNodeActive(nodeId);
+  await wait(ctx.delay);
 
   switch (data.category) {
     case 'function': {
@@ -70,42 +80,58 @@ function processNode(ctx: ExecCtx, nodeId: string): string | null {
         const value = resolveInputValue(ctx, nodeId, 'string-in');
         ctx.emit(value || '(empty string)');
       }
-      return followExec(ctx, nodeId, 'exec-out');
+      const next = followExec(ctx, nodeId, 'exec-out');
+      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
+      return next.targetId;
     }
 
     case 'branch': {
       const condition = resolveInputValue(ctx, nodeId, 'condition');
       const isTrue = condition !== '' && condition !== 'false' && condition !== '0';
-      return followExec(ctx, nodeId, isTrue ? 'true' : 'false');
+      const next = followExec(ctx, nodeId, isTrue ? 'true' : 'false');
+      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
+      return next.targetId;
     }
 
     case 'loop': {
       const first = parseInt(resolveInputValue(ctx, nodeId, 'first-index'), 10) || 0;
       const last = parseInt(resolveInputValue(ctx, nodeId, 'last-index'), 10) || 0;
       for (let i = first; i <= last; i++) {
-        const bodyTarget = followExec(ctx, nodeId, 'body');
-        if (bodyTarget) {
-          processNode(ctx, bodyTarget);
+        const bodyNext = followExec(ctx, nodeId, 'body');
+        if (bodyNext.targetId) {
+          if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
+          await processNode(ctx, bodyNext.targetId);
         }
       }
-      return followExec(ctx, nodeId, 'completed');
+      const completed = followExec(ctx, nodeId, 'completed');
+      if (completed.edgeId) ctx.onEdgeActive(completed.edgeId);
+      return completed.targetId;
     }
 
     case 'event':
-    case 'start':
-      return followExec(ctx, nodeId, 'exec-out');
+    case 'start': {
+      const next = followExec(ctx, nodeId, 'exec-out');
+      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
+      return next.targetId;
+    }
 
-    default:
-      return followExec(ctx, nodeId, 'exec-out') ?? null;
+    default: {
+      const next = followExec(ctx, nodeId, 'exec-out');
+      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
+      return next.targetId;
+    }
   }
 }
 
-export function executeGraph(
+export async function executeGraph(
   nodes: Node[],
   edges: Edge[],
   onOutput: (msg: string) => void,
+  onNodeActive: (nodeId: string) => void,
+  onEdgeActive: (edgeId: string) => void,
+  stepDelay = 300,
 ) {
-  const ctx: ExecCtx = { nodes, edges, emit: onOutput };
+  const ctx: ExecCtx = { nodes, edges, emit: onOutput, onNodeActive, onEdgeActive, delay: stepDelay };
 
   const startNodes = nodes.filter(
     (n) => n.type === 'startNode',
@@ -132,7 +158,7 @@ export function executeGraph(
       }
       visited.add(currentId);
       steps++;
-      currentId = processNode(ctx, currentId);
+      currentId = await processNode(ctx, currentId);
     }
 
     if (steps >= maxSteps) {

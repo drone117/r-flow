@@ -5,6 +5,7 @@ import { ExecutionPin } from '../pins/ExecutionPin';
 import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
 import { NodeIcon } from '../components/NodeIcon';
+import { useExecutionStore } from '../store/executionStore';
 import './BaseNode.css';
 
 interface BaseNodeProps extends NodeProps {
@@ -15,6 +16,8 @@ export function BaseNode({ id, data }: BaseNodeProps) {
   const { setNodes } = useReactFlow();
   const { label, category, inputs = [], outputs = [], icon, values = {} } = data;
   const headerColor = CATEGORY_COLORS[category] ?? '#3a3a5c';
+  const activeNodeId = useExecutionStore((s) => s.activeNodeId);
+  const isActive = activeNodeId === id;
 
   const maxRows = Math.max(inputs.length, outputs.length, 1);
 
@@ -35,7 +38,7 @@ export function BaseNode({ id, data }: BaseNodeProps) {
 
   return (
     <div
-      className={`blueprint-node ${category === 'comment' ? 'blueprint-node--comment' : ''}`}
+      className={`blueprint-node ${category === 'comment' ? 'blueprint-node--comment' : ''} ${isActive ? 'blueprint-node--executing' : ''}`}
       style={{ '--header-color': headerColor } as React.CSSProperties}
     >
       <div className="blueprint-node__header">

@@ -1,7 +1,9 @@
+import { useCallback } from 'react';
 import { Panel } from '@xyflow/react';
 import { useReactFlow } from '@xyflow/react';
 import { useFlowStore } from '../store/flowStore';
 import { useOutputStore } from '../store/outputStore';
+import { useExecutionStore } from '../store/executionStore';
 import { executeGraph } from '../engine/executor';
 import { ToolbarButton } from './ToolbarButton';
 import './Toolbar.css';
@@ -20,6 +22,22 @@ export function Toolbar() {
   const minimapEnabled = useFlowStore((s) => s.minimapEnabled);
   const toggleSnap = useFlowStore((s) => s.toggleSnap);
   const toggleMinimap = useFlowStore((s) => s.toggleMinimap);
+  const isExecuting = useExecutionStore((s) => s.isExecuting);
+  const setActiveNode = useExecutionStore((s) => s.setActiveNode);
+  const setActiveEdge = useExecutionStore((s) => s.setActiveEdge);
+  const startExecution = useExecutionStore((s) => s.startExecution);
+  const stopExecution = useExecutionStore((s) => s.stopExecution);
+
+  const handleRun = useCallback(async () => {
+    if (isExecuting) return;
+    clearMessages();
+    startExecution();
+    try {
+      await executeGraph(nodes, edges, addMessage, setActiveNode, setActiveEdge, 300);
+    } finally {
+      stopExecution();
+    }
+  }, [isExecuting, nodes, edges, addMessage, clearMessages, setActiveNode, setActiveEdge, startExecution, stopExecution]);
 
   return (
     <Panel position="top-center">
@@ -27,10 +45,8 @@ export function Toolbar() {
         {/* Run */}
         <ToolbarButton
           tooltip="Run (Execute from Start nodes)"
-          onClick={() => {
-            clearMessages();
-            executeGraph(nodes, edges, addMessage);
-          }}
+          disabled={isExecuting}
+          onClick={handleRun}
           icon={
             <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
               <path d="M6 4l14 8-14 8V4z" />

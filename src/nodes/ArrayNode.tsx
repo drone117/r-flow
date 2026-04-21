@@ -3,6 +3,7 @@ import type { BlueprintNodeData, PinDataType } from '../types';
 import { PIN_COLORS } from '../types';
 import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
+import { useExecutionStore } from '../store/executionStore';
 import './BaseNode.css';
 
 const ELEMENT_COLORS: Record<string, string> = {
@@ -26,6 +27,8 @@ export function ArrayNode({ id, data }: NodeProps) {
   };
   const pinColor = ELEMENT_COLORS[elementType] ?? '#aaaaaa';
   const displayType = (elementType as string).charAt(0).toUpperCase() + (elementType as string).slice(1);
+  const activeNodeId = useExecutionStore((s) => s.activeNodeId);
+  const isActive = activeNodeId === id;
 
   const updateData = (updater: (data: BlueprintNodeData) => BlueprintNodeData) => {
     setNodes((nds) =>
@@ -64,7 +67,7 @@ export function ArrayNode({ id, data }: NodeProps) {
 
   return (
     <div
-      className="blueprint-node blueprint-node--collection"
+      className={`blueprint-node blueprint-node--collection ${isActive ? 'blueprint-node--executing' : ''}`}
       style={{ '--header-color': pinColor } as React.CSSProperties}
     >
       <div className="blueprint-node__header">

@@ -40,6 +40,31 @@
   border-color: var(--ue-node-border-highlight);
 }
 
+/* Executing glow */
+.blueprint-node--executing {
+  border-color: rgba(200, 168, 50, 0.6) !important;
+  box-shadow:
+    0 0 8px 2px rgba(200, 168, 50, 0.3),
+    0 0 20px 4px rgba(200, 168, 50, 0.15),
+    var(--ue-node-shadow) !important;
+  animation: node-exec-glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes node-exec-glow {
+  from {
+    box-shadow:
+      0 0 8px 2px rgba(200, 168, 50, 0.3),
+      0 0 20px 4px rgba(200, 168, 50, 0.15),
+      var(--ue-node-shadow);
+  }
+  to {
+    box-shadow:
+      0 0 12px 4px rgba(200, 168, 50, 0.5),
+      0 0 30px 8px rgba(200, 168, 50, 0.25),
+      var(--ue-node-shadow);
+  }
+}
+
 .blueprint-node:hover .blueprint-node__header {
   background-image: linear-gradient(
     to bottom,
