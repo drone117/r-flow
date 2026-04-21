@@ -7,9 +7,56 @@
   box-shadow: var(--ue-node-shadow);
   font-size: 12px;
   color: var(--ue-text-primary);
-  overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
+/* Inset top-edge highlight for a "beveled" feel */
+.blueprint-node::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Inset bottom-edge shadow for depth */
+.blueprint-node::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Hover state */
+.blueprint-node:hover {
+  border-color: var(--ue-node-border-highlight);
+}
+
+.blueprint-node:hover .blueprint-node__header {
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 100%
+  );
+}
+
+.blueprint-node:hover .blueprint-node__body {
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 60%
+  );
+}
+
+/* ── Header ─────────────────────────────────────── */
 .blueprint-node__header {
   display: flex;
   align-items: center;
@@ -19,12 +66,26 @@
   background: var(--header-color);
   border-radius: var(--ue-node-radius) var(--ue-node-radius) 0 0;
   user-select: none;
+  position: relative;
+  z-index: 1;
+  /* subtle top-down gradient on header for volume */
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  transition: background-image 0.2s ease;
+  /* inner shadow at the bottom of header for "recessed body" feel */
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .blueprint-node__header-icon {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 .blueprint-node__header-label {
@@ -35,21 +96,39 @@
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
+/* ── Body ───────────────────────────────────────── */
 .blueprint-node__body {
   padding: 6px 0;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.05) 0%,
+    transparent 20%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  transition: background-image 0.2s ease;
 }
 
+/* ── Rows ───────────────────────────────────────── */
 .blueprint-node__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2px 12px;
-  min-height: 22px;
+  padding: 3px 12px;
+  min-height: 24px;
   position: relative;
+}
+
+/* Subtle separator between rows for definition */
+.blueprint-node__row + .blueprint-node__row {
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.08);
 }
 
 .blueprint-node__row--inputs {
@@ -66,6 +145,7 @@
   justify-content: space-between;
 }
 
+/* ── Pin groups ─────────────────────────────────── */
 .blueprint-node__pin-group {
   display: flex;
   align-items: center;
@@ -76,11 +156,13 @@
   margin-left: auto;
 }
 
+/* ── Pin labels ─────────────────────────────────── */
 .blueprint-node__pin-label {
   font-size: 11px;
   color: var(--ue-text-secondary);
   font-family: var(--ue-font-mono);
   white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .blueprint-node__pin-label--left {
@@ -91,12 +173,18 @@
   margin-right: 4px;
 }
 
-/* Comment node */
+/* ── Comment node ───────────────────────────────── */
 .blueprint-node--comment {
   background: var(--ue-color-comment);
   border-color: var(--ue-color-comment-border);
   min-width: 200px;
   max-width: 600px;
+  backdrop-filter: blur(2px);
+}
+
+.blueprint-node--comment:hover {
+  border-color: rgba(200, 168, 50, 0.7);
+  background: rgba(200, 168, 50, 0.16);
 }
 
 .blueprint-node--comment .blueprint-node__body {
@@ -105,7 +193,6 @@
 
 .blueprint-node--comment .blueprint-node__comment-text {
   font-size: 12px;
-  color: var(--ue-pin-float);
   font-style: italic;
   line-height: 1.4;
   resize: none;
@@ -116,9 +203,10 @@
   min-height: 30px;
   font-family: var(--ue-font-ui);
   color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Node resizer for comment */
+/* ── Node resizer for comment ───────────────────── */
 .react-flow__node-resizer {
   border: none;
   background: transparent;
