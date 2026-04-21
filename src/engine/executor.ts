@@ -9,6 +9,7 @@ interface ExecCtx {
   onNodeActive: (nodeId: string) => void;
   onEdgeActive: (edgeId: string) => void;
   delay: number;
+  loopIndex: Map<string, number>;
 }
 
 function wait(ms: number) {
@@ -47,6 +48,10 @@ function resolveOutputValue(
     const targetType = data.targetType as PinDataType;
     const inputValue = resolveInputValue(ctx, nodeId, 'value-in');
     return convertValue(inputValue, sourceType, targetType);
+  }
+
+  if (data.category === 'loop' && handleId === 'index') {
+    return String(ctx.loopIndex.get(nodeId) ?? '');
   }
 
   if (data.category === 'math') {
@@ -105,12 +110,14 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
       const first = parseInt(resolveInputValue(ctx, nodeId, 'first-index'), 10) || 0;
       const last = parseInt(resolveInputValue(ctx, nodeId, 'last-index'), 10) || 0;
       for (let i = first; i <= last; i++) {
+        ctx.loopIndex.set(nodeId, i);
         const bodyNext = followExec(ctx, nodeId, 'body');
         if (bodyNext.targetId) {
           if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
           await processNode(ctx, bodyNext.targetId);
         }
       }
+      ctx.loopIndex.delete(nodeId);
       const completed = followExec(ctx, nodeId, 'completed');
       if (completed.edgeId) ctx.onEdgeActive(completed.edgeId);
       return completed.targetId;
@@ -139,7 +146,7 @@ export async function executeGraph(
   onEdgeActive: (edgeId: string) => void,
   stepDelay = 300,
 ) {
-  const ctx: ExecCtx = { nodes, edges, emit: onOutput, onNodeActive, onEdgeActive, delay: stepDelay };
+  const ctx: ExecCtx = { nodes, edges, emit: onOutput, onNodeActive, onEdgeActive, delay: stepDelay, loopIndex: new Map() };
 
   const startNodes = nodes.filter(
     (n) => n.type === 'startNode',
