@@ -113,6 +113,7 @@ function CanvasInner() {
                 case 'loop': return '#555566';
                 case 'comment': return '#c8a832';
                 case 'pure': return '#3d3d5c';
+                case 'start': return '#1a8b3c';
                 default: return '#252540';
               }
             }}

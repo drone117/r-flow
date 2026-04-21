@@ -240,6 +240,54 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
+  constString: {
+    type: 'constantNode',
+    data: {
+      label: 'String',
+      category: 'pure',
+      dataType: 'string',
+      outputs: [
+        { id: 'value-out', label: '', direction: 'source', dataType: 'string' },
+      ],
+      values: { value: '' },
+    },
+  },
+  constFloat: {
+    type: 'constantNode',
+    data: {
+      label: 'Float',
+      category: 'pure',
+      dataType: 'float',
+      outputs: [
+        { id: 'value-out', label: '', direction: 'source', dataType: 'float' },
+      ],
+      values: { value: '0.0' },
+    },
+  },
+  constInt: {
+    type: 'constantNode',
+    data: {
+      label: 'Int',
+      category: 'pure',
+      dataType: 'int',
+      outputs: [
+        { id: 'value-out', label: '', direction: 'source', dataType: 'int' },
+      ],
+      values: { value: '0' },
+    },
+  },
+  constBool: {
+    type: 'constantNode',
+    data: {
+      label: 'Bool',
+      category: 'pure',
+      dataType: 'bool',
+      outputs: [
+        { id: 'value-out', label: '', direction: 'source', dataType: 'bool' },
+      ],
+      values: { value: 'false' },
+    },
+  },
 };
 
 export function createNodeFromType(type: string, position: XYPosition): Node {
@@ -294,6 +342,15 @@ export const sidebarCategories: SidebarCategory[] = [
     items: [
       { type: 'getVariable', label: 'Get Variable', category: 'variable' },
       { type: 'setVariable', label: 'Set Variable', category: 'variable' },
+    ],
+  },
+  {
+    name: 'Constants',
+    items: [
+      { type: 'constString', label: 'String', category: 'pure' },
+      { type: 'constFloat', label: 'Float', category: 'pure' },
+      { type: 'constInt', label: 'Int', category: 'pure' },
+      { type: 'constBool', label: 'Bool', category: 'pure' },
     ],
   },
   {

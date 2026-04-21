@@ -30,7 +30,7 @@ function resolveOutputValue(
   if (!node) return '';
   const data = node.data as BlueprintNodeData;
 
-  if (data.category === 'variable') {
+  if (data.category === 'variable' || node.type === 'constantNode') {
     return data.values?.[handleId] ?? data.values?.['value'] ?? '';
   }
 

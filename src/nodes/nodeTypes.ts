@@ -7,6 +7,7 @@ import { LoopNode } from './LoopNode';
 import { CommentNode } from './CommentNode';
 import { PureNode } from './PureNode';
 import { StartNode } from './StartNode';
+import { ConstantNode } from './ConstantNode';
 
 export const nodeTypes = {
   functionNode: FunctionNode,
@@ -18,4 +19,5 @@ export const nodeTypes = {
   commentNode: CommentNode,
   pureNode: PureNode,
   startNode: StartNode,
+  constantNode: ConstantNode,
 };
