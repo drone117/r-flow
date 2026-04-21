@@ -29,7 +29,7 @@ export function Sidebar() {
   const handleExpand = useCallback((categoryName: string) => {
     setCollapsed(false);
     setHighlighted(categoryName);
-    setOpenCategories(new Set(sidebarCategories.map((c) => c.name)));
+    setOpenCategories(new Set([categoryName]));
     setTimeout(() => setHighlighted(null), 3000);
   }, []);
 
