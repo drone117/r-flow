@@ -203,6 +203,8 @@
   background: var(--ue-color-comment);
   border-color: var(--ue-color-comment-border);
   min-width: 160px;
+  width: 100%;
+  box-sizing: border-box;
   backdrop-filter: blur(2px);
 }
 
