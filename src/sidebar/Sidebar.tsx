@@ -20,7 +20,7 @@ export function Sidebar() {
       </div>
       <div className="sidebar__content">
         {sidebarCategories.map((cat) => (
-          <SidebarCategory key={cat.name} category={cat} />
+          <SidebarCategory key={cat.name} category={cat} collapsed={collapsed} />
         ))}
       </div>
     </div>

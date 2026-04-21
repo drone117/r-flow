@@ -1,13 +1,39 @@
 import { useState } from 'react';
 import type { SidebarCategory as SidebarCategoryType } from '../components/nodeFactory';
+import { NodeIcon } from '../components/NodeIcon';
 import { SidebarItem } from './SidebarItem';
+
+const CATEGORY_ICONS: Record<string, string> = {
+  Events: 'event',
+  Functions: 'function',
+  Variables: 'variable',
+  Constants: 'constant',
+  Arrays: 'array',
+  Maps: 'map',
+  Math: 'math',
+  'Flow Control': 'flowcontrol',
+  Utilities: 'utilities',
+};
 
 interface SidebarCategoryProps {
   category: SidebarCategoryType;
+  collapsed?: boolean;
 }
 
-export function SidebarCategory({ category }: SidebarCategoryProps) {
+export function SidebarCategory({ category, collapsed }: SidebarCategoryProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const iconKey = CATEGORY_ICONS[category.name] ?? '';
+
+  if (collapsed) {
+    return (
+      <button
+        className="sidebar__category-icon-btn"
+        title={category.name}
+      >
+        <NodeIcon category={iconKey} />
+      </button>
+    );
+  }
 
   return (
     <div className="sidebar__category">
