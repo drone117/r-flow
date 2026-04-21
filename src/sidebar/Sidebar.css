@@ -53,7 +53,7 @@
 
 .sidebar__category-arrow {
   font-size: 8px;
-  transition: transform 0.2s;
+  transition: transform 0.25s ease;
   color: var(--ue-text-muted);
 }
 
@@ -62,12 +62,18 @@
 }
 
 .sidebar__category-items {
-  overflow: hidden;
-  transition: max-height 0.2s ease;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.25s ease;
 }
 
 .sidebar__category-items--collapsed {
-  max-height: 0;
+  grid-template-rows: 0fr;
+}
+
+.sidebar__category-items-inner {
+  overflow: hidden;
+  min-height: 0;
 }
 
 .sidebar__item {

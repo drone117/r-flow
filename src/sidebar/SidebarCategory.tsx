@@ -21,14 +21,16 @@ export function SidebarCategory({ category }: SidebarCategoryProps) {
         </span>
       </button>
       <div className={`sidebar__category-items ${!isOpen ? 'sidebar__category-items--collapsed' : ''}`}>
-        {category.items.map((item) => (
-          <SidebarItem
-            key={item.type}
-            type={item.type}
-            label={item.label}
-            category={item.category}
-          />
-        ))}
+        <div className="sidebar__category-items-inner">
+          {category.items.map((item) => (
+            <SidebarItem
+              key={item.type}
+              type={item.type}
+              label={item.label}
+              category={item.category}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
