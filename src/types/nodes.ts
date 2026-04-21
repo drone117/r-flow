@@ -7,7 +7,8 @@ export type NodeCategory =
   | 'loop'
   | 'comment'
   | 'pure'
-  | 'start';
+  | 'start'
+  | 'conversion';
 
 export type PinDataType =
   | 'execution'
@@ -58,4 +59,5 @@ export const CATEGORY_COLORS: Record<NodeCategory, string> = {
   comment: 'rgba(200, 168, 50, 0.3)',
   pure: '#3d3d5c',
   start: '#1a8b3c',
+  conversion: '#2a4a6b',
 };

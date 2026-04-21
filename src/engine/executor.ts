@@ -1,5 +1,6 @@
 import type { Node, Edge } from '@xyflow/react';
-import type { BlueprintNodeData } from '../types';
+import type { BlueprintNodeData, PinDataType } from '../types';
+import { convertValue } from '../utils/conversionUtils';
 
 interface ExecCtx {
   nodes: Node[];
@@ -39,6 +40,13 @@ function resolveOutputValue(
 
   if (data.category === 'variable' || node.type === 'constantNode') {
     return data.values?.[handleId] ?? data.values?.['value'] ?? '';
+  }
+
+  if (data.category === 'conversion') {
+    const sourceType = data.sourceType as PinDataType;
+    const targetType = data.targetType as PinDataType;
+    const inputValue = resolveInputValue(ctx, nodeId, 'value-in');
+    return convertValue(inputValue, sourceType, targetType);
   }
 
   if (data.category === 'math') {

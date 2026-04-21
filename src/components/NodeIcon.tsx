@@ -104,6 +104,13 @@ export function NodeIcon({ category }: NodeIconProps) {
           <path d="M6 2L10 2L10 6L14 6L14 10L10 10L10 14L6 14L6 10L2 10L2 6L6 6Z" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
       );
+    case 'conversion':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+          <path d="M3 5H7M9 11H13" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M7 5L5 3M7 5L5 7M9 11L7 9M9 11L7 13" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
     default:
       return null;
   }

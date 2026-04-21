@@ -9,6 +9,9 @@ import {
   applyEdgeChanges,
   addEdge,
 } from '@xyflow/react';
+import { PIN_COLORS } from '../types';
+import { isConvertible, getConversionLabel } from '../utils/conversionUtils';
+import type { PinDataType } from '../types';
 
 const MAX_HISTORY = 50;
 
@@ -121,6 +124,17 @@ const initialEdges: Edge[] = [
   },
 ];
 
+function buildEdge(conn: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }, dataType: PinDataType): Edge {
+  return {
+    ...conn,
+    type: 'blueprint',
+    data: {
+      dataType,
+      pinColor: PIN_COLORS[dataType] ?? '#aaaaaa',
+    },
+  };
+}
+
 export const useFlowStore = create<FlowState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
@@ -139,38 +153,69 @@ export const useFlowStore = create<FlowState>((set, get) => ({
 
   onConnect: (connection) => {
     const { past, future } = saveSnapshot(get());
-    const sourceNode = get().nodes.find((n) => n.id === connection.source);
-    const sourceHandle = sourceNode?.data?.outputs?.find(
+    const state = get();
+
+    const sourceNode = state.nodes.find((n) => n.id === connection.source);
+    const targetNode = state.nodes.find((n) => n.id === connection.target);
+    const sourcePin = sourceNode?.data?.outputs?.find(
       (p: { id: string }) => p.id === connection.sourceHandle,
     );
-    const dataType = sourceHandle?.dataType ?? 'wildcard';
+    const targetPin = targetNode?.data?.inputs?.find(
+      (p: { id: string }) => p.id === connection.targetHandle,
+    );
+    const sourceType = (sourcePin?.dataType ?? 'wildcard') as PinDataType;
+    const targetType = (targetPin?.dataType ?? 'wildcard') as PinDataType;
 
-    const newEdge: Edge = {
-      ...connection,
-      type: 'blueprint',
-      data: {
-        dataType,
-        pinColor:
-          dataType === 'execution'
-            ? '#ffffff'
-            : dataType === 'float'
-              ? '#e8d44d'
-              : dataType === 'int'
-                ? '#1bc6a0'
-                : dataType === 'string'
-                  ? '#f050a0'
-                  : dataType === 'bool'
-                    ? '#cc0000'
-                    : dataType === 'object'
-                      ? '#0066ff'
-                      : '#aaaaaa',
-      },
-    };
-    set({
-      edges: addEdge(newEdge, get().edges),
-      past,
-      future,
-    });
+    // Types match or wildcard — direct edge (existing behavior)
+    if (sourceType === targetType || sourceType === 'wildcard' || targetType === 'wildcard') {
+      const newEdge = buildEdge(connection, sourceType);
+      set({ edges: addEdge(newEdge, state.edges), past, future });
+      return;
+    }
+
+    // Convertible mismatch — insert conversion node
+    if (isConvertible(sourceType, targetType)) {
+      const convId = `conv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const midX = ((sourceNode?.position.x ?? 0) + (targetNode?.position.x ?? 0)) / 2;
+      const midY = ((sourceNode?.position.y ?? 0) + (targetNode?.position.y ?? 0)) / 2;
+
+      const convNode: Node = {
+        id: convId,
+        type: 'conversionNode',
+        position: { x: midX, y: midY },
+        data: {
+          label: getConversionLabel(sourceType, targetType),
+          category: 'conversion',
+          sourceType,
+          targetType,
+          inputs: [
+            { id: 'value-in', label: '', direction: 'target' as const, dataType: sourceType },
+          ],
+          outputs: [
+            { id: 'value-out', label: '', direction: 'source' as const, dataType: targetType },
+          ],
+        },
+      };
+
+      const edge1 = buildEdge(
+        { source: connection.source, sourceHandle: connection.sourceHandle, target: convId, targetHandle: 'value-in' },
+        sourceType,
+      );
+      const edge2 = buildEdge(
+        { source: convId, sourceHandle: 'value-out', target: connection.target, targetHandle: connection.targetHandle },
+        targetType,
+      );
+
+      set({
+        nodes: [...state.nodes, convNode],
+        edges: addEdge(edge2, addEdge(edge1, state.edges)),
+        past,
+        future,
+      });
+      return;
+    }
+
+    // Non-convertible mismatch — shouldn't reach here due to isValidConnection, but ignore
   },
 
   addNode: (node) => {

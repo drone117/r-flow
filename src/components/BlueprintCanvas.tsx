@@ -15,6 +15,7 @@ import { edgeTypes } from '../edges/edgeTypes';
 import { useFlowStore } from '../store/flowStore';
 import { useDnD } from '../hooks/useDnD';
 import { createNodeFromType } from './nodeFactory';
+import { isConvertible } from '../utils/conversionUtils';
 import { Toolbar } from '../toolbar/Toolbar';
 import { OutputConsole } from './OutputConsole';
 import './BlueprintCanvas.css';
@@ -108,8 +109,10 @@ function CanvasInner() {
           const targetType = targetPin?.dataType ?? 'wildcard';
 
           if (sourceType === 'wildcard' || targetType === 'wildcard') return true;
-
-          return sourceType === targetType;
+          if (sourceType === targetType) return true;
+          if (sourceType === 'execution' || targetType === 'execution') return false;
+          if (sourceType === 'object' || targetType === 'object') return false;
+          return isConvertible(sourceType, targetType);
         }}
         onDragOver={onDragOver}
         onDrop={onDrop}
@@ -142,6 +145,7 @@ function CanvasInner() {
                 case 'comment': return '#c8a832';
                 case 'pure': return '#3d3d5c';
                 case 'start': return '#1a8b3c';
+                case 'conversion': return '#2a4a6b';
                 default: return '#252540';
               }
             }}
