@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { SidebarCategory as SidebarCategoryType } from '../components/nodeFactory';
 import { NodeIcon } from '../components/NodeIcon';
 import { SidebarItem } from './SidebarItem';
@@ -19,11 +18,12 @@ interface SidebarCategoryProps {
   category: SidebarCategoryType;
   collapsed?: boolean;
   highlighted?: boolean;
+  isOpen: boolean;
+  onToggle?: (categoryName: string) => void;
   onExpand?: (categoryName: string) => void;
 }
 
-export function SidebarCategory({ category, collapsed, highlighted, onExpand }: SidebarCategoryProps) {
-  const [isOpen, setIsOpen] = useState(true);
+export function SidebarCategory({ category, collapsed, highlighted, isOpen, onToggle, onExpand }: SidebarCategoryProps) {
   const iconKey = CATEGORY_ICONS[category.name] ?? '';
 
   if (collapsed) {
@@ -42,7 +42,7 @@ export function SidebarCategory({ category, collapsed, highlighted, onExpand }: 
     <div className="sidebar__category">
       <button
         className={`sidebar__category-header ${highlighted ? 'sidebar__category-header--highlighted' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => onToggle?.(category.name)}
       >
         <span>{category.name}</span>
         <span className={`sidebar__category-arrow ${isOpen ? 'sidebar__category-arrow--open' : ''}`}>
