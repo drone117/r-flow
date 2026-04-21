@@ -73,7 +73,7 @@ export function CommentNode({ id, data }: NodeProps) {
       <div className="blueprint-node__body">
         <textarea
           ref={textareaRef}
-          className="blueprint-node__comment-text"
+          className="blueprint-node__comment-text nodrag"
           defaultValue={commentText ?? ''}
           placeholder="Add a comment..."
           rows={1}
@@ -87,7 +87,7 @@ export function CommentNode({ id, data }: NodeProps) {
           onFocus={(e) => e.stopPropagation()}
         />
       </div>
-      <div className="blueprint-node__resize-handle" onMouseDown={onResizeStart} />
+      <div className="blueprint-node__resize-handle nodrag" onMouseDown={onResizeStart} />
     </div>
   );
 }
