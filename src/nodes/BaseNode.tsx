@@ -21,7 +21,9 @@ export function BaseNode({ id, data }: BaseNodeProps) {
   const connectedInputIds = useStore((s) => {
     const ids = new Set<string>();
     for (const e of s.edges) {
-      if (e.target === id) ids.add(e.targetHandle!);
+      if (e.target === id) {
+        ids.add(e.targetHandle!);
+      }
     }
     return ids;
   });
