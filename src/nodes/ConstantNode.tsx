@@ -96,6 +96,24 @@ export function ConstantNode({ id, data }: NodeProps) {
               el.style.height = el.scrollHeight + 'px';
             }}
           />
+        ) : dataType === 'bool' ? (
+          <div className="blueprint-node__row">
+            <div className="blueprint-node__pin-group">
+              <select
+                className="blueprint-node__const-select nodrag"
+                value={value}
+                onChange={(e) => onValueChange(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </div>
+            <div className="blueprint-node__pin-group blueprint-node__pin-group--right">
+              <DataPin id="value-out" type="source" dataType={dataType} position={Position.Right} />
+            </div>
+          </div>
         ) : (
           <div className="blueprint-node__row">
             <div className="blueprint-node__pin-group">
