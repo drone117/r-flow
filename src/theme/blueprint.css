@@ -76,6 +76,7 @@
   border: 2px solid rgba(0, 0, 0, 0.35) !important;
   border-radius: 50% !important;
   opacity: 0.9;
+  background: var(--pin-bg, var(--ue-pin-wildcard)) !important;
 }
 
 .ue-handle--data:hover {
@@ -84,12 +85,12 @@
   box-shadow: 0 0 8px 2px currentColor;
 }
 
-.ue-handle--data[data-datatype="float"]    { background: var(--ue-pin-float) !important; }
-.ue-handle--data[data-datatype="int"]      { background: var(--ue-pin-int) !important; }
-.ue-handle--data[data-datatype="string"]   { background: var(--ue-pin-string) !important; }
-.ue-handle--data[data-datatype="bool"]     { background: var(--ue-pin-bool) !important; }
-.ue-handle--data[data-datatype="object"]   { background: var(--ue-pin-object) !important; }
-.ue-handle--data[data-datatype="wildcard"] { background: var(--ue-pin-wildcard) !important; }
+.ue-handle--data[data-datatype="float"]    { --pin-bg: var(--ue-pin-float); }
+.ue-handle--data[data-datatype="int"]      { --pin-bg: var(--ue-pin-int); }
+.ue-handle--data[data-datatype="string"]   { --pin-bg: var(--ue-pin-string); }
+.ue-handle--data[data-datatype="bool"]     { --pin-bg: var(--ue-pin-bool); }
+.ue-handle--data[data-datatype="object"]   { --pin-bg: var(--ue-pin-object); }
+.ue-handle--data[data-datatype="wildcard"] { --pin-bg: var(--ue-pin-wildcard); }
 
 /* Edges */
 .react-flow__edge-path {

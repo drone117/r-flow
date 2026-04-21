@@ -16,10 +16,7 @@
 .blueprint-node::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 6px;
-  right: 6px;
-  bottom: 0;
+  inset: 0;
   border-radius: inherit;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   border-left: 1px solid rgba(255, 255, 255, 0.04);
@@ -31,10 +28,7 @@
 .blueprint-node::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 6px;
-  right: 6px;
-  bottom: 0;
+  inset: 0;
   border-radius: inherit;
   border-bottom: 1px solid rgba(0, 0, 0, 0.3);
   border-right: 1px solid rgba(0, 0, 0, 0.2);

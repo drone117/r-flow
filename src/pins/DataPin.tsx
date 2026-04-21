@@ -16,7 +16,7 @@ export function DataPin({ id, type, dataType, position = Position.Left, color }:
       id={id}
       className="ue-handle ue-handle--data"
       data-datatype={dataType}
-      style={color ? { background: color } : undefined}
+      style={color ? { '--pin-bg': color } as React.CSSProperties : undefined}
     />
   );
 }

@@ -33,7 +33,6 @@ export function BaseNode({ id, data }: BaseNodeProps) {
     const colors = new Map<string, string>();
     let inheritedColor: string | undefined;
     for (const e of s.edges) {
-      // Resolve the effective type dynamically from pin definitions, not stored edge data
       const sourceNode = s.nodes.find((n) => n.id === e.source);
       const targetNode = s.nodes.find((n) => n.id === e.target);
       const sourcePin = sourceNode?.data?.outputs?.find((p: { id?: string }) => p.id === e.sourceHandle);
@@ -44,7 +43,6 @@ export function BaseNode({ id, data }: BaseNodeProps) {
       if (effectiveType === 'wildcard') continue;
       const color = PIN_COLORS[effectiveType];
       if (!color) continue;
-      // Target wildcard pin adopts source's type color
       if (e.target === id) {
         const localTargetPin = inputs.find((p) => p.id === e.targetHandle);
         if (localTargetPin?.dataType === 'wildcard') {
@@ -52,13 +50,11 @@ export function BaseNode({ id, data }: BaseNodeProps) {
           inheritedColor = color;
         }
       }
-      // Source wildcard pin adopts target's type color
       if (e.source === id) {
         const localSourcePin = outputs.find((p) => p.id === e.sourceHandle);
         if (localSourcePin?.dataType === 'wildcard') colors.set(e.sourceHandle!, color);
       }
     }
-    // Propagate inherited type color to all unconnected wildcard outputs
     if (inheritedColor) {
       for (const out of outputs) {
         if (out.dataType === 'wildcard' && !colors.has(out.id)) {
