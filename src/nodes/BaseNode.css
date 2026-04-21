@@ -382,6 +382,11 @@
   color: var(--ue-text-muted);
 }
 
+.blueprint-node__const-textarea--error {
+  border-color: rgba(220, 60, 60, 0.6) !important;
+  background: rgba(220, 60, 60, 0.08) !important;
+}
+
 /* ── Collection nodes (Array / Map) ─────────────── */
 .blueprint-node--collection {
   min-width: 200px;

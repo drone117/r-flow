@@ -17,7 +17,8 @@ export type PinDataType =
   | 'string'
   | 'bool'
   | 'object'
-  | 'wildcard';
+  | 'wildcard'
+  | 'json';
 
 export type PinDirection = 'target' | 'source';
 
@@ -47,6 +48,7 @@ export const PIN_COLORS: Record<PinDataType, string> = {
   bool: '#cc0000',
   object: '#0066ff',
   wildcard: '#aaaaaa',
+  json: '#50c878',
 };
 
 export const CATEGORY_COLORS: Record<NodeCategory, string> = {

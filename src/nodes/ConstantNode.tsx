@@ -1,4 +1,5 @@
 import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
+import { useState } from 'react';
 import type { BlueprintNodeData } from '../types';
 import { PIN_COLORS } from '../types';
 import { DataPin } from '../pins/DataPin';
@@ -16,6 +17,7 @@ const TYPE_LABELS: Record<ConstType, string> = {
   wildcard: 'Any',
   array: 'Array',
   map: 'Map',
+  json: 'JSON',
 };
 
 const TYPE_HEADERS: Record<ConstType, string> = {
@@ -28,9 +30,10 @@ const TYPE_HEADERS: Record<ConstType, string> = {
   wildcard: '#aaaaaa',
   array: '#7c6bc4',
   map: '#e08040',
+  json: '#50c878',
 };
 
-const MULTI_LINE_TYPES = new Set(['array', 'map']);
+const MULTI_LINE_TYPES = new Set(['array', 'map', 'json']);
 
 export function ConstantNode({ id, data }: NodeProps) {
   const { setNodes } = useReactFlow();
@@ -40,6 +43,8 @@ export function ConstantNode({ id, data }: NodeProps) {
   const value = values['value'] ?? '';
   const pinColor = PIN_COLORS[dataType as keyof typeof PIN_COLORS] ?? '#aaaaaa';
   const isMultiLine = MULTI_LINE_TYPES.has(dataType);
+  const isJson = dataType === 'json';
+  const [jsonValid, setJsonValid] = useState(true);
 
   const onValueChange = (val: string) => {
     setNodes((nds) =>
@@ -60,7 +65,9 @@ export function ConstantNode({ id, data }: NodeProps) {
     ? 'item1\nitem2\nitem3'
     : dataType === 'map'
       ? 'key1=value1\nkey2=value2'
-      : dataType === 'string'
+      : dataType === 'json'
+        ? '{"key": "value"}'
+        : dataType === 'string'
         ? '""'
         : dataType === 'bool'
           ? 'true'
@@ -83,9 +90,18 @@ export function ConstantNode({ id, data }: NodeProps) {
       <div className="blueprint-node__body">
         {isMultiLine ? (
           <textarea
-            className="blueprint-node__const-textarea nodrag"
+            className={`blueprint-node__const-textarea nodrag ${isJson && !jsonValid ? 'blueprint-node__const-textarea--error' : ''}`}
             value={value}
-            onChange={(e) => onValueChange(e.target.value)}
+            onChange={(e) => {
+              onValueChange(e.target.value);
+              if (isJson) setJsonValid(true);
+            }}
+            onBlur={() => {
+              if (isJson) {
+                try { JSON.parse(value); setJsonValid(true); }
+                catch { setJsonValid(false); }
+              }
+            }}
             placeholder={placeholder}
             rows={3}
             onClick={(e) => e.stopPropagation()}

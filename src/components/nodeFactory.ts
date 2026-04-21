@@ -288,6 +288,18 @@ const templates: Record<string, NodeTemplate> = {
       values: { value: 'false' },
     },
   },
+  constJson: {
+    type: 'constantNode',
+    data: {
+      label: 'JSON',
+      category: 'pure',
+      dataType: 'json',
+      outputs: [
+        { id: 'value-out', label: '', direction: 'source', dataType: 'json' },
+      ],
+      values: { value: '{}' },
+    },
+  },
   arrayString: {
     type: 'arrayNode',
     data: {
@@ -417,6 +429,7 @@ export const sidebarCategories: SidebarCategory[] = [
       { type: 'constFloat', label: 'Float', category: 'pure' },
       { type: 'constInt', label: 'Int', category: 'pure' },
       { type: 'constBool', label: 'Bool', category: 'pure' },
+      { type: 'constJson', label: 'JSON', category: 'pure' },
     ],
   },
   {
