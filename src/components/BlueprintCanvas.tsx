@@ -102,6 +102,7 @@ function CanvasInner() {
         />
         {minimapEnabled && (
           <MiniMap
+            position="bottom-left"
             nodeColor={(node) => {
               const cat = (node.data as { category?: string })?.category;
               switch (cat) {
