@@ -1,4 +1,5 @@
-import { useRef, useEffect, type NodeProps } from '@xyflow/react';
+import { useRef, useEffect } from 'react';
+import { type NodeProps } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS } from '../types';
 import { NodeIcon } from '../components/NodeIcon';
