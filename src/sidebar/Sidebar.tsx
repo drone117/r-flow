@@ -10,7 +10,7 @@ export function Sidebar() {
   const handleExpand = useCallback((categoryName: string) => {
     setCollapsed(false);
     setHighlighted(categoryName);
-    setTimeout(() => setHighlighted(null), 1500);
+    setTimeout(() => setHighlighted(null), 3000);
   }, []);
 
   return (
