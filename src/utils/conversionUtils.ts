@@ -1,12 +1,14 @@
 import type { PinDataType } from '../types';
 
-const CONVERTIBLE_TYPES: Set<PinDataType> = new Set(['float', 'int', 'string', 'bool']);
+const CONVERTIBLE_TYPES: Set<PinDataType> = new Set(['float', 'int', 'string', 'bool', 'json']);
 
 export function isConvertible(from: PinDataType, to: PinDataType): boolean {
   if (from === to) return false;
   if (from === 'wildcard' || to === 'wildcard') return false;
   if (from === 'execution' || to === 'execution') return false;
   if (from === 'object' || to === 'object') return false;
+  if (from === 'json' && to !== 'string') return false;
+  if (to === 'json') return false;
   return CONVERTIBLE_TYPES.has(from) && CONVERTIBLE_TYPES.has(to);
 }
 
@@ -39,6 +41,7 @@ const TYPE_LABELS: Record<string, string> = {
   int: 'Int',
   string: 'String',
   bool: 'Bool',
+  json: 'JSON',
 };
 
 export function getConversionLabel(from: PinDataType, to: PinDataType): string {
