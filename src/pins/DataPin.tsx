@@ -5,9 +5,10 @@ interface DataPinProps {
   type: 'source' | 'target';
   dataType: string;
   position?: Position;
+  color?: string;
 }
 
-export function DataPin({ id, type, dataType, position = Position.Left }: DataPinProps) {
+export function DataPin({ id, type, dataType, position = Position.Left, color }: DataPinProps) {
   return (
     <Handle
       type={type}
@@ -15,6 +16,7 @@ export function DataPin({ id, type, dataType, position = Position.Left }: DataPi
       id={id}
       className="ue-handle ue-handle--data"
       data-datatype={dataType}
+      style={color ? { background: color } : undefined}
     />
   );
 }

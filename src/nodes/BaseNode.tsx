@@ -1,6 +1,7 @@
 import { type NodeProps, Position, useReactFlow, useStore } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
-import { CATEGORY_COLORS } from '../types';
+import { CATEGORY_COLORS, PIN_COLORS } from '../types';
+import type { PinDataType } from '../types';
 import { ExecutionPin } from '../pins/ExecutionPin';
 import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
@@ -26,6 +27,27 @@ export function BaseNode({ id, data }: BaseNodeProps) {
       }
     }
     return ids;
+  });
+
+  const resolvedPinColors = useStore((s) => {
+    const colors = new Map<string, string>();
+    for (const e of s.edges) {
+      const edgeType = (e.data as { dataType?: string } | undefined)?.dataType as PinDataType | undefined;
+      if (!edgeType || edgeType === 'wildcard') continue;
+      const color = PIN_COLORS[edgeType];
+      if (!color) continue;
+      // Target wildcard pin adopts source's type color
+      if (e.target === id) {
+        const targetPin = inputs.find((p) => p.id === e.targetHandle);
+        if (targetPin?.dataType === 'wildcard') colors.set(e.targetHandle!, color);
+      }
+      // Source wildcard pin adopts target's type color
+      if (e.source === id) {
+        const sourcePin = outputs.find((p) => p.id === e.sourceHandle);
+        if (sourcePin?.dataType === 'wildcard') colors.set(e.sourceHandle!, color);
+      }
+    }
+    return colors;
   });
 
   const maxRows = Math.max(inputs.length, outputs.length, 1);
@@ -68,7 +90,7 @@ export function BaseNode({ id, data }: BaseNodeProps) {
                   <ExecutionPin id={input.id} type="target" position={Position.Left} />
                 )}
                 {input && input.dataType !== 'execution' && (
-                  <DataPin id={input.id} type="target" dataType={input.dataType} position={Position.Left} />
+                  <DataPin id={input.id} type="target" dataType={input.dataType} position={Position.Left} color={resolvedPinColors.get(input.id)} />
                 )}
                 {input && input.dataType !== 'execution' && (
                   <>
@@ -105,7 +127,7 @@ export function BaseNode({ id, data }: BaseNodeProps) {
                   <ExecutionPin id={output.id} type="source" position={Position.Right} />
                 )}
                 {output && output.dataType !== 'execution' && (
-                  <DataPin id={output.id} type="source" dataType={output.dataType} position={Position.Right} />
+                  <DataPin id={output.id} type="source" dataType={output.dataType} position={Position.Right} color={resolvedPinColors.get(output.id)} />
                 )}
               </div>
             </div>

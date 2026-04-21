@@ -193,7 +193,8 @@ export const useFlowStore = create<FlowState>((set, get) => ({
 
     // Types match or wildcard — direct edge (existing behavior)
     if (sourceType === targetType || sourceType === 'wildcard' || targetType === 'wildcard') {
-      const newEdge = buildEdge(connection, sourceType);
+      const resolvedType = sourceType === 'wildcard' ? targetType : sourceType;
+      const newEdge = buildEdge(connection, resolvedType);
       set({ edges: addEdge(newEdge, state.edges), past, future });
       return;
     }
