@@ -218,6 +218,23 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
+  forEachLoop: {
+    type: 'loopNode',
+    data: {
+      label: 'For Each Loop',
+      category: 'loop',
+      inputs: [
+        { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
+        { id: 'array', label: 'Array', direction: 'target', dataType: 'object' },
+      ],
+      outputs: [
+        { id: 'body', label: 'Loop Body', direction: 'source', dataType: 'execution' },
+        { id: 'completed', label: 'Completed', direction: 'source', dataType: 'execution' },
+        { id: 'index', label: 'Index', direction: 'source', dataType: 'int' },
+        { id: 'value', label: 'Value', direction: 'source', dataType: 'wildcard' },
+      ],
+    },
+  },
   comment: {
     type: 'commentNode',
     data: {
@@ -457,6 +474,7 @@ export const sidebarCategories: SidebarCategory[] = [
     items: [
       { type: 'branch', label: 'Branch', category: 'branch' },
       { type: 'forLoop', label: 'For Loop', category: 'loop' },
+      { type: 'forEachLoop', label: 'For Each Loop', category: 'loop' },
       { type: 'whileLoop', label: 'While Loop', category: 'loop' },
     ],
   },

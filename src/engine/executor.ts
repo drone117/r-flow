@@ -10,6 +10,7 @@ interface ExecCtx {
   onEdgeActive: (edgeId: string) => void;
   delay: number;
   loopIndex: Map<string, number>;
+  loopValue: Map<string, string>;
 }
 
 function wait(ms: number) {
@@ -54,6 +55,10 @@ function resolveOutputValue(
     return String(ctx.loopIndex.get(nodeId) ?? '');
   }
 
+  if (data.category === 'loop' && handleId === 'value') {
+    return ctx.loopValue.get(nodeId) ?? '';
+  }
+
   if (data.category === 'math') {
     const a = resolveInputValue(ctx, nodeId, data.inputs?.[0]?.id ?? 'a');
     const b = resolveInputValue(ctx, nodeId, data.inputs?.[1]?.id ?? 'b');
@@ -67,6 +72,11 @@ function resolveOutputValue(
       return String(Math.max(min, val));
     }
     return String(numA + numB);
+  }
+
+  if (node.type === 'arrayNode' && 'items' in data) {
+    const items = (data.items as { id: string; value: string }[]) ?? [];
+    return JSON.stringify(items.map((i) => i.value));
   }
 
   return data.values?.[handleId] ?? '';
@@ -107,17 +117,34 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
     }
 
     case 'loop': {
-      const first = parseInt(resolveInputValue(ctx, nodeId, 'first-index'), 10) || 0;
-      const last = parseInt(resolveInputValue(ctx, nodeId, 'last-index'), 10) || 0;
-      for (let i = first; i <= last; i++) {
-        ctx.loopIndex.set(nodeId, i);
-        const bodyNext = followExec(ctx, nodeId, 'body');
-        if (bodyNext.targetId) {
-          if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
-          await processNode(ctx, bodyNext.targetId);
+      if (data.label === 'For Each Loop') {
+        const rawArray = resolveInputValue(ctx, nodeId, 'array');
+        let elements: string[] = [];
+        try { elements = JSON.parse(rawArray); } catch { /* not a valid array */ }
+        for (let i = 0; i < elements.length; i++) {
+          ctx.loopIndex.set(nodeId, i);
+          ctx.loopValue.set(nodeId, elements[i]);
+          const bodyNext = followExec(ctx, nodeId, 'body');
+          if (bodyNext.targetId) {
+            if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
+            await processNode(ctx, bodyNext.targetId);
+          }
         }
+        ctx.loopIndex.delete(nodeId);
+        ctx.loopValue.delete(nodeId);
+      } else {
+        const first = parseInt(resolveInputValue(ctx, nodeId, 'first-index'), 10) || 0;
+        const last = parseInt(resolveInputValue(ctx, nodeId, 'last-index'), 10) || 0;
+        for (let i = first; i <= last; i++) {
+          ctx.loopIndex.set(nodeId, i);
+          const bodyNext = followExec(ctx, nodeId, 'body');
+          if (bodyNext.targetId) {
+            if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
+            await processNode(ctx, bodyNext.targetId);
+          }
+        }
+        ctx.loopIndex.delete(nodeId);
       }
-      ctx.loopIndex.delete(nodeId);
       const completed = followExec(ctx, nodeId, 'completed');
       if (completed.edgeId) ctx.onEdgeActive(completed.edgeId);
       return completed.targetId;
@@ -146,7 +173,7 @@ export async function executeGraph(
   onEdgeActive: (edgeId: string) => void,
   stepDelay = 300,
 ) {
-  const ctx: ExecCtx = { nodes, edges, emit: onOutput, onNodeActive, onEdgeActive, delay: stepDelay, loopIndex: new Map() };
+  const ctx: ExecCtx = { nodes, edges, emit: onOutput, onNodeActive, onEdgeActive, delay: stepDelay, loopIndex: new Map(), loopValue: new Map() };
 
   const startNodes = nodes.filter(
     (n) => n.type === 'startNode',
