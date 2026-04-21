@@ -24,6 +24,7 @@
   font-family: var(--ue-font-ui);
   font-size: 12px;
   transition: box-shadow 0.2s ease, filter 0.2s ease;
+  overflow: visible;
 }
 
 .react-flow__node:hover {
@@ -42,6 +43,7 @@
 /* Handles */
 .react-flow__handle {
   transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  z-index: 3;
 }
 
 /* Execution pin triangles */
