@@ -6,6 +6,7 @@ import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
 import { NodeIcon } from '../components/NodeIcon';
 import { useExecutionStore } from '../store/executionStore';
+import { useFlowStore } from '../store/flowStore';
 import './BaseNode.css';
 
 interface BaseNodeProps extends NodeProps {
@@ -18,6 +19,10 @@ export function BaseNode({ id, data }: BaseNodeProps) {
   const headerColor = CATEGORY_COLORS[category] ?? '#3a3a5c';
   const activeNodeId = useExecutionStore((s) => s.activeNodeId);
   const isActive = activeNodeId === id;
+  const edges = useFlowStore((s) => s.edges);
+  const connectedInputIds = new Set(
+    edges.filter((e) => e.target === id).map((e) => e.targetHandle!),
+  );
 
   const maxRows = Math.max(inputs.length, outputs.length, 1);
 
@@ -64,7 +69,7 @@ export function BaseNode({ id, data }: BaseNodeProps) {
                 {input && input.dataType !== 'execution' && (
                   <>
                     <PinLabel label={input.label} side="left" />
-                    {input.dataType === 'bool' ? (
+                    {connectedInputIds.has(input.id) ? null : input.dataType === 'bool' ? (
                       <select
                         className="blueprint-node__pin-select nodrag"
                         value={values[input.id] ?? 'false'}
