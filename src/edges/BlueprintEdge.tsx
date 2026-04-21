@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { BaseEdge, getBezierPath, useReactFlow, useStore, type EdgeProps } from '@xyflow/react';
 import { useExecutionStore } from '../store/executionStore';
 import { PIN_COLORS } from '../types';
@@ -21,7 +21,7 @@ export function BlueprintEdge({
 }: EdgeProps) {
   const { setEdges } = useReactFlow();
 
-  const [edgePath] = getBezierPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     targetX,
@@ -31,9 +31,9 @@ export function BlueprintEdge({
     curvature: 0.4,
   });
 
-  const resolvedColor = useStore((s) => {
+  const { resolvedColor, isArray } = useStore((s) => {
     const storedColor = (data as { pinColor?: string } | undefined)?.pinColor;
-    if (!storedColor) return '#b1b1b7';
+    if (!storedColor) return { resolvedColor: '#b1b1b7', isArray: false };
 
     const sourceNode = s.nodes.find((n) => n.id === source);
     const targetNode = s.nodes.find((n) => n.id === target);
@@ -42,13 +42,17 @@ export function BlueprintEdge({
     const sourceType = (sourcePin?.dataType as PinDataType) ?? 'wildcard';
     const targetType = (targetPin?.dataType as PinDataType) ?? 'wildcard';
 
+    const isArrayEdge = sourceNode?.type === 'arrayNode' || targetNode?.type === 'arrayNode';
+
     // If neither pin is wildcard, use stored color as-is
-    if (sourceType !== 'wildcard' && targetType !== 'wildcard') return storedColor;
+    if (sourceType !== 'wildcard' && targetType !== 'wildcard') {
+      return { resolvedColor: storedColor, isArray: isArrayEdge };
+    }
 
     // Otherwise resolve from the typed end
     const resolvedType = sourceType === 'wildcard' ? targetType : sourceType;
-    if (resolvedType !== 'wildcard') return PIN_COLORS[resolvedType] ?? storedColor;
-    return storedColor;
+    const color = resolvedType !== 'wildcard' ? (PIN_COLORS[resolvedType] ?? storedColor) : storedColor;
+    return { resolvedColor: color, isArray: isArrayEdge };
   });
 
   const edgeColor = resolvedColor;
@@ -65,6 +69,8 @@ export function BlueprintEdge({
     },
     [id, setEdges],
   );
+
+  const s = 5; // diamond half-size
 
   return (
     <>
@@ -92,6 +98,15 @@ export function BlueprintEdge({
             filter: `drop-shadow(0 0 4px ${edgeColor})`,
             animation: 'edge-flow 0.4s linear infinite',
           }}
+        />
+      )}
+      {isArray && (
+        <polygon
+          points={`${labelX},${labelY - s} ${labelX + s},${labelY} ${labelX},${labelY + s} ${labelX - s},${labelY}`}
+          fill={edgeColor}
+          stroke="rgba(0,0,0,0.4)"
+          strokeWidth={1}
+          style={{ pointerEvents: 'none' }}
         />
       )}
       <path
