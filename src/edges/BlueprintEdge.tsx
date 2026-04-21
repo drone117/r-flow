@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, useReactFlow, type EdgeProps } from '@xyflow/react';
+import { useCallback } from 'react';
+import { BaseEdge, getBezierPath, useReactFlow, type EdgeProps } from '@xyflow/react';
 import { useExecutionStore } from '../store/executionStore';
 
 export function BlueprintEdge({
@@ -13,10 +13,9 @@ export function BlueprintEdge({
   data,
   style = {},
 }: EdgeProps) {
-  const [hovered, setHovered] = useState(false);
   const { setEdges } = useReactFlow();
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
     targetX,
@@ -31,23 +30,18 @@ export function BlueprintEdge({
   const activeEdgeId = useExecutionStore((s) => s.activeEdgeId);
   const isActive = activeEdgeId === id;
 
-  const deleteEdge = useCallback(() => {
-    setEdges((eds) => eds.filter((e) => e.id !== id));
-  }, [id, setEdges]);
-
-  const showDelete = useMemo(() => hovered && !isActive, [hovered, isActive]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.altKey) {
+        e.stopPropagation();
+        setEdges((eds) => eds.filter((edge) => edge.id !== id));
+      }
+    },
+    [id, setEdges],
+  );
 
   return (
     <>
-      <path
-        d={edgePath}
-        fill="none"
-        stroke="transparent"
-        strokeWidth={14}
-        className="react-flow__edge-interaction"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      />
       <BaseEdge
         id={id}
         path={edgePath}
@@ -74,22 +68,14 @@ export function BlueprintEdge({
           }}
         />
       )}
-      {showDelete && (
-        <EdgeLabelRenderer>
-          <button
-            className="edge-delete-btn"
-            onClick={deleteEdge}
-            onMouseEnter={(e) => e.stopPropagation()}
-            style={{
-              position: 'absolute',
-              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              pointerEvents: 'all',
-            }}
-          >
-            &times;
-          </button>
-        </EdgeLabelRenderer>
-      )}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={14}
+        className="react-flow__edge-interaction"
+        onClick={handleClick}
+      />
     </>
   );
 }
