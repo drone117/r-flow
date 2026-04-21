@@ -56,6 +56,12 @@ export function NodeIcon({ category }: NodeIconProps) {
           <path d="M3 12L6 4H10L13 12" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
       );
+    case 'start':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+          <path d="M4 2L13 8L4 14V2Z" fill="rgba(255,255,255,0.9)" />
+        </svg>
+      );
     default:
       return null;
   }

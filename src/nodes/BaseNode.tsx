@@ -1,4 +1,4 @@
-import { type NodeProps, Position } from '@xyflow/react';
+import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS } from '../types';
 import { ExecutionPin } from '../pins/ExecutionPin';
@@ -11,11 +11,27 @@ interface BaseNodeProps extends NodeProps {
   data: BlueprintNodeData;
 }
 
-export function BaseNode({ data, selected }: BaseNodeProps) {
-  const { label, category, inputs = [], outputs = [], icon } = data;
+export function BaseNode({ id, data }: BaseNodeProps) {
+  const { setNodes } = useReactFlow();
+  const { label, category, inputs = [], outputs = [], icon, values = {} } = data;
   const headerColor = CATEGORY_COLORS[category] ?? '#3a3a5c';
 
   const maxRows = Math.max(inputs.length, outputs.length, 1);
+
+  const onValueChange = (pinId: string, value: string) => {
+    setNodes((nds) =>
+      nds.map((n) => {
+        if (n.id !== id) return n;
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            values: { ...(n.data as BlueprintNodeData).values, [pinId]: value },
+          },
+        };
+      }),
+    );
+  };
 
   return (
     <div
@@ -37,38 +53,34 @@ export function BaseNode({ data, selected }: BaseNodeProps) {
             <div key={i} className="blueprint-node__row blueprint-node__row--both">
               <div className="blueprint-node__pin-group">
                 {input && input.dataType === 'execution' && (
-                  <ExecutionPin
-                    id={input.id}
-                    type="target"
-                    position={Position.Left}
-                  />
+                  <ExecutionPin id={input.id} type="target" position={Position.Left} />
                 )}
                 {input && input.dataType !== 'execution' && (
-                  <DataPin
-                    id={input.id}
-                    type="target"
-                    dataType={input.dataType}
-                    position={Position.Left}
-                  />
+                  <DataPin id={input.id} type="target" dataType={input.dataType} position={Position.Left} />
                 )}
-                {input && <PinLabel label={input.label} side="left" />}
+                {input && input.dataType !== 'execution' && (
+                  <>
+                    <PinLabel label={input.label} side="left" />
+                    <input
+                      className="blueprint-node__pin-input"
+                      value={values[input.id] ?? ''}
+                      onChange={(e) => onValueChange(input.id, e.target.value)}
+                      placeholder={getPlaceholder(input.dataType)}
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    />
+                  </>
+                )}
               </div>
               <div className="blueprint-node__pin-group blueprint-node__pin-group--right">
-                {output && <PinLabel label={output.label} side="right" />}
+                {output && output.label && (
+                  <PinLabel label={output.label} side="right" />
+                )}
                 {output && output.dataType === 'execution' && (
-                  <ExecutionPin
-                    id={output.id}
-                    type="source"
-                    position={Position.Right}
-                  />
+                  <ExecutionPin id={output.id} type="source" position={Position.Right} />
                 )}
                 {output && output.dataType !== 'execution' && (
-                  <DataPin
-                    id={output.id}
-                    type="source"
-                    dataType={output.dataType}
-                    position={Position.Right}
-                  />
+                  <DataPin id={output.id} type="source" dataType={output.dataType} position={Position.Right} />
                 )}
               </div>
             </div>
@@ -77,4 +89,14 @@ export function BaseNode({ data, selected }: BaseNodeProps) {
       </div>
     </div>
   );
+}
+
+function getPlaceholder(dataType: string): string {
+  switch (dataType) {
+    case 'float': return '0.0';
+    case 'int': return '0';
+    case 'string': return '...';
+    case 'bool': return 'false';
+    default: return '...';
+  }
 }

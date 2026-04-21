@@ -19,6 +19,16 @@ interface NodeTemplate {
 }
 
 const templates: Record<string, NodeTemplate> = {
+  start: {
+    type: 'startNode',
+    data: {
+      label: 'Start',
+      category: 'start',
+      outputs: [
+        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
+      ],
+    },
+  },
   eventBeginPlay: {
     type: 'eventNode',
     data: {
@@ -265,6 +275,7 @@ export const sidebarCategories: SidebarCategory[] = [
   {
     name: 'Events',
     items: [
+      { type: 'start', label: 'Start', category: 'start' },
       { type: 'eventBeginPlay', label: 'Event BeginPlay', category: 'event' },
       { type: 'eventTick', label: 'Event Tick', category: 'event' },
       { type: 'customEvent', label: 'Custom Event', category: 'event' },

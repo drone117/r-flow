@@ -6,7 +6,8 @@ export type NodeCategory =
   | 'branch'
   | 'loop'
   | 'comment'
-  | 'pure';
+  | 'pure'
+  | 'start';
 
 export type PinDataType =
   | 'execution'
@@ -33,6 +34,7 @@ export interface BlueprintNodeData {
   inputs?: PinConfig[];
   outputs?: PinConfig[];
   commentText?: string;
+  values?: Record<string, string>;
   [key: string]: unknown;
 }
 
@@ -55,4 +57,5 @@ export const CATEGORY_COLORS: Record<NodeCategory, string> = {
   loop: '#555566',
   comment: 'rgba(200, 168, 50, 0.3)',
   pure: '#3d3d5c',
+  start: '#1a8b3c',
 };

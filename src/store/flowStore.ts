@@ -49,37 +49,25 @@ const initialNodes: Node[] = [
     data: {
       label: 'Comment',
       category: 'comment',
-      commentText: 'Startup logic — prints welcome message on BeginPlay',
+      commentText: 'Press Run (▶) in the toolbar to execute the graph',
     },
   },
   {
-    id: 'event-1',
-    type: 'eventNode',
-    position: { x: 60, y: 160 },
+    id: 'start-1',
+    type: 'startNode',
+    position: { x: 60, y: 200 },
     data: {
-      label: 'Event BeginPlay',
-      category: 'event',
+      label: 'Start',
+      category: 'start',
       outputs: [
         { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
       ],
     },
   },
   {
-    id: 'var-1',
-    type: 'variableNode',
-    position: { x: 60, y: 320 },
-    data: {
-      label: 'Get "Welcome"',
-      category: 'variable',
-      outputs: [
-        { id: 'value-out', label: 'Value', direction: 'source', dataType: 'string' },
-      ],
-    },
-  },
-  {
     id: 'func-1',
     type: 'functionNode',
-    position: { x: 340, y: 140 },
+    position: { x: 320, y: 180 },
     data: {
       label: 'Print String',
       category: 'function',
@@ -90,66 +78,45 @@ const initialNodes: Node[] = [
       outputs: [
         { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
       ],
+      values: { 'string-in': 'Hello, Blueprint!' },
     },
   },
   {
-    id: 'math-1',
-    type: 'mathNode',
-    position: { x: 340, y: 310 },
+    id: 'func-2',
+    type: 'functionNode',
+    position: { x: 320, y: 340 },
     data: {
-      label: 'Float + Float',
-      category: 'math',
-      inputs: [
-        { id: 'a', label: 'A', direction: 'target', dataType: 'float' },
-        { id: 'b', label: 'B', direction: 'target', dataType: 'float' },
-      ],
-      outputs: [
-        { id: 'result', label: 'Result', direction: 'source', dataType: 'float' },
-      ],
-    },
-  },
-  {
-    id: 'branch-1',
-    type: 'branchNode',
-    position: { x: 640, y: 140 },
-    data: {
-      label: 'Branch',
-      category: 'branch',
+      label: 'Print String',
+      category: 'function',
       inputs: [
         { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
-        { id: 'condition', label: 'Condition', direction: 'target', dataType: 'bool' },
+        { id: 'string-in', label: 'In String', direction: 'target', dataType: 'string' },
       ],
       outputs: [
-        { id: 'true', label: 'True', direction: 'source', dataType: 'execution' },
-        { id: 'false', label: 'False', direction: 'source', dataType: 'execution' },
+        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
       ],
+      values: { 'string-in': 'Second message' },
     },
   },
   {
-    id: 'loop-1',
-    type: 'loopNode',
-    position: { x: 960, y: 100 },
+    id: 'var-1',
+    type: 'variableNode',
+    position: { x: 60, y: 380 },
     data: {
-      label: 'For Loop',
-      category: 'loop',
-      inputs: [
-        { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
-        { id: 'first-index', label: 'First Index', direction: 'target', dataType: 'int' },
-        { id: 'last-index', label: 'Last Index', direction: 'target', dataType: 'int' },
-      ],
+      label: 'Get "Counter"',
+      category: 'variable',
       outputs: [
-        { id: 'body', label: 'Loop Body', direction: 'source', dataType: 'execution' },
-        { id: 'completed', label: 'Completed', direction: 'source', dataType: 'execution' },
-        { id: 'index', label: 'Index', direction: 'source', dataType: 'int' },
+        { id: 'value-out', label: 'Value', direction: 'source', dataType: 'string' },
       ],
+      values: { 'value-out': '42' },
     },
   },
 ];
 
 const initialEdges: Edge[] = [
   {
-    id: 'e-event-func',
-    source: 'event-1',
+    id: 'e-start-func1',
+    source: 'start-1',
     sourceHandle: 'exec-out',
     target: 'func-1',
     targetHandle: 'exec-in',
@@ -157,28 +124,10 @@ const initialEdges: Edge[] = [
     data: { dataType: 'execution', pinColor: '#ffffff' },
   },
   {
-    id: 'e-var-func',
-    source: 'var-1',
-    sourceHandle: 'value-out',
-    target: 'func-1',
-    targetHandle: 'string-in',
-    type: 'blueprint',
-    data: { dataType: 'string', pinColor: '#f050a0' },
-  },
-  {
-    id: 'e-func-branch',
+    id: 'e-func1-func2',
     source: 'func-1',
     sourceHandle: 'exec-out',
-    target: 'branch-1',
-    targetHandle: 'exec-in',
-    type: 'blueprint',
-    data: { dataType: 'execution', pinColor: '#ffffff' },
-  },
-  {
-    id: 'e-branch-loop',
-    source: 'branch-1',
-    sourceHandle: 'true',
-    target: 'loop-1',
+    target: 'func-2',
     targetHandle: 'exec-in',
     type: 'blueprint',
     data: { dataType: 'execution', pinColor: '#ffffff' },

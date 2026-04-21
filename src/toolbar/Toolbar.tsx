@@ -1,12 +1,18 @@
 import { Panel } from '@xyflow/react';
 import { useReactFlow } from '@xyflow/react';
 import { useFlowStore } from '../store/flowStore';
+import { useOutputStore } from '../store/outputStore';
+import { executeGraph } from '../engine/executor';
 import { ToolbarButton } from './ToolbarButton';
 import './Toolbar.css';
 
 export function Toolbar() {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const nodes = useFlowStore((s) => s.nodes);
+  const edges = useFlowStore((s) => s.edges);
   const undo = useFlowStore((s) => s.undo);
+  const addMessage = useOutputStore((s) => s.addMessage);
+  const clearMessages = useOutputStore((s) => s.clearMessages);
   const redo = useFlowStore((s) => s.redo);
   const past = useFlowStore((s) => s.past);
   const future = useFlowStore((s) => s.future);
@@ -18,6 +24,22 @@ export function Toolbar() {
   return (
     <Panel position="top-center">
       <div className="toolbar">
+        {/* Run */}
+        <ToolbarButton
+          tooltip="Run (Execute from Start nodes)"
+          onClick={() => {
+            clearMessages();
+            executeGraph(nodes, edges, addMessage);
+          }}
+          icon={
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <path d="M6 4l14 8-14 8V4z" />
+            </svg>
+          }
+        />
+
+        <div className="toolbar__separator" />
+
         {/* Undo */}
         <ToolbarButton
           tooltip="Undo (Ctrl+Z)"

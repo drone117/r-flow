@@ -16,6 +16,7 @@ import { useFlowStore } from '../store/flowStore';
 import { useDnD } from '../hooks/useDnD';
 import { createNodeFromType } from './nodeFactory';
 import { Toolbar } from '../toolbar/Toolbar';
+import { OutputConsole } from './OutputConsole';
 import './BlueprintCanvas.css';
 
 function CanvasInner() {
@@ -121,6 +122,7 @@ function CanvasInner() {
           />
         )}
         <Toolbar />
+        <OutputConsole />
       </ReactFlow>
     </div>
   );

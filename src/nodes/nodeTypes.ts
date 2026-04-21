@@ -6,6 +6,7 @@ import { BranchNode } from './BranchNode';
 import { LoopNode } from './LoopNode';
 import { CommentNode } from './CommentNode';
 import { PureNode } from './PureNode';
+import { StartNode } from './StartNode';
 
 export const nodeTypes = {
   functionNode: FunctionNode,
@@ -16,4 +17,5 @@ export const nodeTypes = {
   loopNode: LoopNode,
   commentNode: CommentNode,
   pureNode: PureNode,
+  startNode: StartNode,
 };
