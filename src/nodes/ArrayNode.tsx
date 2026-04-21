@@ -2,6 +2,7 @@ import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import type { BlueprintNodeData, PinDataType } from '../types';
 import { PIN_COLORS } from '../types';
 import { DataPin } from '../pins/DataPin';
+import { PinLabel } from '../pins/PinLabel';
 import './BaseNode.css';
 
 const ELEMENT_COLORS: Record<string, string> = {
@@ -74,31 +75,35 @@ export function ArrayNode({ id, data }: NodeProps) {
       </div>
       <div className="blueprint-node__body">
         {(items as ArrayItem[]).map((item, idx) => (
-          <div key={item.id} className="blueprint-node__collection-row">
-            <span className="blueprint-node__collection-idx">{idx}</span>
-            <DataPin
-              id={`item-${idx}-in`}
-              type="target"
-              dataType={elementType as PinDataType}
-              position={Position.Left}
-            />
-            <input
-              className="blueprint-node__collection-input nodrag"
-              value={item.value}
-              onChange={(e) => updateItemValue(item.id, e.target.value)}
-              placeholder={elementType === 'string' ? '""' : elementType === 'bool' ? 'true' : '0'}
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-            <button
-              className="blueprint-node__collection-remove nodrag"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeItem(item.id);
-              }}
-            >
-              ×
-            </button>
+          <div key={item.id} className="blueprint-node__row">
+            <div className="blueprint-node__pin-group">
+              <DataPin
+                id={`item-${idx}-in`}
+                type="target"
+                dataType={elementType as PinDataType}
+                position={Position.Left}
+              />
+              <PinLabel label={`[${idx}]`} side="left" />
+              <input
+                className="blueprint-node__pin-input nodrag"
+                value={item.value}
+                onChange={(e) => updateItemValue(item.id, e.target.value)}
+                placeholder={elementType === 'string' ? '""' : elementType === 'bool' ? 'true' : '0'}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              />
+            </div>
+            <div className="blueprint-node__pin-group blueprint-node__pin-group--right">
+              <button
+                className="blueprint-node__collection-remove nodrag"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeItem(item.id);
+                }}
+              >
+                ×
+              </button>
+            </div>
           </div>
         ))}
         <button

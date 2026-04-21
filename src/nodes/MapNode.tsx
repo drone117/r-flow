@@ -1,6 +1,7 @@
 import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import type { BlueprintNodeData, PinDataType } from '../types';
 import { DataPin } from '../pins/DataPin';
+import { PinLabel } from '../pins/PinLabel';
 import './BaseNode.css';
 
 interface MapEntry {
@@ -79,17 +80,17 @@ export function MapNode({ id, data }: NodeProps) {
           </span>
         </div>
         {(entries as MapEntry[]).map((entry, idx) => (
-          <div key={entry.id} className="blueprint-node__map-row">
-            <span className="blueprint-node__collection-idx">{idx}</span>
-            <div className="blueprint-node__map-field">
+          <div key={entry.id} className="blueprint-node__row">
+            <div className="blueprint-node__pin-group">
               <DataPin
                 id={`entry-${idx}-key-in`}
                 type="target"
                 dataType={keyType as PinDataType}
                 position={Position.Left}
               />
+              <PinLabel label={`[${idx}] Key`} side="left" />
               <input
-                className="blueprint-node__map-input nodrag"
+                className="blueprint-node__pin-input nodrag"
                 value={entry.key}
                 onChange={(e) => updateEntry(entry.id, 'key', e.target.value)}
                 placeholder="key"
@@ -97,31 +98,38 @@ export function MapNode({ id, data }: NodeProps) {
                 onMouseDown={(e) => e.stopPropagation()}
               />
             </div>
-            <div className="blueprint-node__map-field">
+            <div className="blueprint-node__pin-group blueprint-node__pin-group--right">
+              <button
+                className="blueprint-node__collection-remove nodrag"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeEntry(entry.id);
+                }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        ))}
+        {(entries as MapEntry[]).map((entry, idx) => (
+          <div key={`val-${entry.id}`} className="blueprint-node__row">
+            <div className="blueprint-node__pin-group">
+              <DataPin
+                id={`entry-${idx}-value-in`}
+                type="target"
+                dataType={valueType as PinDataType}
+                position={Position.Left}
+              />
+              <PinLabel label={`[${idx}] Value`} side="left" />
               <input
-                className="blueprint-node__map-input nodrag"
+                className="blueprint-node__pin-input nodrag"
                 value={entry.value}
                 onChange={(e) => updateEntry(entry.id, 'value', e.target.value)}
                 placeholder="value"
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
               />
-              <DataPin
-                id={`entry-${idx}-value-in`}
-                type="target"
-                dataType={valueType as PinDataType}
-                position={Position.Right}
-              />
             </div>
-            <button
-              className="blueprint-node__collection-remove nodrag"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeEntry(entry.id);
-              }}
-            >
-              ×
-            </button>
           </div>
         ))}
         <button
