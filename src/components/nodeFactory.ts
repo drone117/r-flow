@@ -225,7 +225,7 @@ const templates: Record<string, NodeTemplate> = {
       category: 'loop',
       inputs: [
         { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
-        { id: 'array', label: 'Array', direction: 'target', dataType: 'object' },
+        { id: 'array', label: 'Array', direction: 'target', dataType: 'wildcard' },
       ],
       outputs: [
         { id: 'body', label: 'Loop Body', direction: 'source', dataType: 'execution' },
@@ -323,6 +323,9 @@ const templates: Record<string, NodeTemplate> = {
       label: 'String Array',
       category: 'pure',
       elementType: 'string',
+      outputs: [
+        { id: 'array-out', label: '', direction: 'source', dataType: 'string' },
+      ],
       items: [{ id: 'item-0', value: '' }],
     },
   },
@@ -332,6 +335,9 @@ const templates: Record<string, NodeTemplate> = {
       label: 'Float Array',
       category: 'pure',
       elementType: 'float',
+      outputs: [
+        { id: 'array-out', label: '', direction: 'source', dataType: 'float' },
+      ],
       items: [{ id: 'item-0', value: '0.0' }],
     },
   },
@@ -341,6 +347,9 @@ const templates: Record<string, NodeTemplate> = {
       label: 'Int Array',
       category: 'pure',
       elementType: 'int',
+      outputs: [
+        { id: 'array-out', label: '', direction: 'source', dataType: 'int' },
+      ],
       items: [{ id: 'item-0', value: '0' }],
     },
   },
@@ -350,6 +359,9 @@ const templates: Record<string, NodeTemplate> = {
       label: 'Bool Array',
       category: 'pure',
       elementType: 'bool',
+      outputs: [
+        { id: 'array-out', label: '', direction: 'source', dataType: 'bool' },
+      ],
       items: [{ id: 'item-0', value: 'false' }],
     },
   },
