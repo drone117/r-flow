@@ -203,6 +203,9 @@
   background: var(--ue-color-comment);
   border-color: var(--ue-color-comment-border);
   min-width: 160px;
+  max-width: 800px;
+  resize: horizontal;
+  overflow: hidden;
   backdrop-filter: blur(2px);
 }
 

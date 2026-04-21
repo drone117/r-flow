@@ -39,6 +39,12 @@ export function CommentNode({ data }: NodeProps) {
           placeholder="Add a comment..."
           rows={1}
           onInput={(e) => autoResize(e.currentTarget)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              e.currentTarget.blur();
+            }
+          }}
           onFocus={(e) => e.stopPropagation()}
         />
       </div>
