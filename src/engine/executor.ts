@@ -127,7 +127,10 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
           const bodyNext = followExec(ctx, nodeId, 'body');
           if (bodyNext.targetId) {
             if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
-            await processNode(ctx, bodyNext.targetId);
+            let bodyId = bodyNext.targetId;
+            while (bodyId) {
+              bodyId = await processNode(ctx, bodyId);
+            }
           }
         }
         ctx.loopIndex.delete(nodeId);
@@ -140,7 +143,10 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
           const bodyNext = followExec(ctx, nodeId, 'body');
           if (bodyNext.targetId) {
             if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
-            await processNode(ctx, bodyNext.targetId);
+            let bodyId = bodyNext.targetId;
+            while (bodyId) {
+              bodyId = await processNode(ctx, bodyId);
+            }
           }
         }
         ctx.loopIndex.delete(nodeId);
