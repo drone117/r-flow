@@ -223,6 +223,38 @@
   color: var(--ue-text-muted);
 }
 
+.blueprint-node__pin-select {
+  width: 72px;
+  padding: 1px 5px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  color: var(--ue-text-primary);
+  font-size: 10px;
+  font-family: var(--ue-font-mono);
+  line-height: 1.5;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M2 1l2 2 2-2' stroke='%23888' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  padding-right: 14px;
+}
+
+.blueprint-node__pin-select:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.blueprint-node__pin-select option {
+  background: #1a1a2e;
+  color: var(--ue-text-primary);
+}
+
 /* ── Comment node ───────────────────────────────── */
 .blueprint-node--comment {
   background: var(--ue-color-comment);

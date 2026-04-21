@@ -64,14 +64,27 @@ export function BaseNode({ id, data }: BaseNodeProps) {
                 {input && input.dataType !== 'execution' && (
                   <>
                     <PinLabel label={input.label} side="left" />
-                    <input
-                      className="blueprint-node__pin-input"
-                      value={values[input.id] ?? ''}
-                      onChange={(e) => onValueChange(input.id, e.target.value)}
-                      placeholder={getPlaceholder(input.dataType)}
-                      onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                    />
+                    {input.dataType === 'bool' ? (
+                      <select
+                        className="blueprint-node__pin-select nodrag"
+                        value={values[input.id] ?? 'false'}
+                        onChange={(e) => onValueChange(input.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      >
+                        <option value="true">true</option>
+                        <option value="false">false</option>
+                      </select>
+                    ) : (
+                      <input
+                        className="blueprint-node__pin-input"
+                        value={values[input.id] ?? ''}
+                        onChange={(e) => onValueChange(input.id, e.target.value)}
+                        placeholder={getPlaceholder(input.dataType)}
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      />
+                    )}
                   </>
                 )}
               </div>
