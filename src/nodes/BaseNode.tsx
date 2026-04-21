@@ -1,4 +1,4 @@
-import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
+import { type NodeProps, Position, useReactFlow, useStore } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS } from '../types';
 import { ExecutionPin } from '../pins/ExecutionPin';
@@ -6,7 +6,6 @@ import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
 import { NodeIcon } from '../components/NodeIcon';
 import { useExecutionStore } from '../store/executionStore';
-import { useFlowStore } from '../store/flowStore';
 import './BaseNode.css';
 
 interface BaseNodeProps extends NodeProps {
@@ -19,10 +18,13 @@ export function BaseNode({ id, data }: BaseNodeProps) {
   const headerColor = CATEGORY_COLORS[category] ?? '#3a3a5c';
   const activeNodeId = useExecutionStore((s) => s.activeNodeId);
   const isActive = activeNodeId === id;
-  const edges = useFlowStore((s) => s.edges);
-  const connectedInputIds = new Set(
-    edges.filter((e) => e.target === id).map((e) => e.targetHandle!),
-  );
+  const connectedInputIds = useStore((s) => {
+    const ids = new Set<string>();
+    for (const e of s.edges) {
+      if (e.target === id) ids.add(e.targetHandle!);
+    }
+    return ids;
+  });
 
   const maxRows = Math.max(inputs.length, outputs.length, 1);
 
