@@ -8,6 +8,8 @@ import { CommentNode } from './CommentNode';
 import { PureNode } from './PureNode';
 import { StartNode } from './StartNode';
 import { ConstantNode } from './ConstantNode';
+import { ArrayNode } from './ArrayNode';
+import { MapNode } from './MapNode';
 
 export const nodeTypes = {
   functionNode: FunctionNode,
@@ -20,4 +22,6 @@ export const nodeTypes = {
   pureNode: PureNode,
   startNode: StartNode,
   constantNode: ConstantNode,
+  arrayNode: ArrayNode,
+  mapNode: MapNode,
 };

@@ -288,28 +288,70 @@ const templates: Record<string, NodeTemplate> = {
       values: { value: 'false' },
     },
   },
-  constArray: {
-    type: 'constantNode',
+  arrayString: {
+    type: 'arrayNode',
     data: {
-      label: 'Array',
+      label: 'String Array',
       category: 'pure',
-      dataType: 'array',
-      outputs: [
-        { id: 'value-out', label: '', direction: 'source', dataType: 'array' },
-      ],
-      values: { value: '' },
+      elementType: 'string',
+      items: [{ id: 'item-0', value: '' }],
     },
   },
-  constMap: {
-    type: 'constantNode',
+  arrayFloat: {
+    type: 'arrayNode',
     data: {
-      label: 'Map',
+      label: 'Float Array',
       category: 'pure',
-      dataType: 'map',
-      outputs: [
-        { id: 'value-out', label: '', direction: 'source', dataType: 'map' },
-      ],
-      values: { value: '' },
+      elementType: 'float',
+      items: [{ id: 'item-0', value: '0.0' }],
+    },
+  },
+  arrayInt: {
+    type: 'arrayNode',
+    data: {
+      label: 'Int Array',
+      category: 'pure',
+      elementType: 'int',
+      items: [{ id: 'item-0', value: '0' }],
+    },
+  },
+  arrayBool: {
+    type: 'arrayNode',
+    data: {
+      label: 'Bool Array',
+      category: 'pure',
+      elementType: 'bool',
+      items: [{ id: 'item-0', value: 'false' }],
+    },
+  },
+  mapStringString: {
+    type: 'mapNode',
+    data: {
+      label: 'Map (String → String)',
+      category: 'pure',
+      keyType: 'string',
+      valueType: 'string',
+      entries: [{ id: 'entry-0', key: '', value: '' }],
+    },
+  },
+  mapStringInt: {
+    type: 'mapNode',
+    data: {
+      label: 'Map (String → Int)',
+      category: 'pure',
+      keyType: 'string',
+      valueType: 'int',
+      entries: [{ id: 'entry-0', key: '', value: '0' }],
+    },
+  },
+  mapStringFloat: {
+    type: 'mapNode',
+    data: {
+      label: 'Map (String → Float)',
+      category: 'pure',
+      keyType: 'string',
+      valueType: 'float',
+      entries: [{ id: 'entry-0', key: '', value: '0.0' }],
     },
   },
 };
@@ -375,8 +417,23 @@ export const sidebarCategories: SidebarCategory[] = [
       { type: 'constFloat', label: 'Float', category: 'pure' },
       { type: 'constInt', label: 'Int', category: 'pure' },
       { type: 'constBool', label: 'Bool', category: 'pure' },
-      { type: 'constArray', label: 'Array', category: 'pure' },
-      { type: 'constMap', label: 'Map', category: 'pure' },
+    ],
+  },
+  {
+    name: 'Arrays',
+    items: [
+      { type: 'arrayString', label: 'String Array', category: 'pure' },
+      { type: 'arrayFloat', label: 'Float Array', category: 'pure' },
+      { type: 'arrayInt', label: 'Int Array', category: 'pure' },
+      { type: 'arrayBool', label: 'Bool Array', category: 'pure' },
+    ],
+  },
+  {
+    name: 'Maps',
+    items: [
+      { type: 'mapStringString', label: 'Map (String → String)', category: 'pure' },
+      { type: 'mapStringInt', label: 'Map (String → Int)', category: 'pure' },
+      { type: 'mapStringFloat', label: 'Map (String → Float)', category: 'pure' },
     ],
   },
   {
