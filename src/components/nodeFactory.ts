@@ -288,6 +288,30 @@ const templates: Record<string, NodeTemplate> = {
       values: { value: 'false' },
     },
   },
+  constArray: {
+    type: 'constantNode',
+    data: {
+      label: 'Array',
+      category: 'pure',
+      dataType: 'array',
+      outputs: [
+        { id: 'value-out', label: '', direction: 'source', dataType: 'array' },
+      ],
+      values: { value: '' },
+    },
+  },
+  constMap: {
+    type: 'constantNode',
+    data: {
+      label: 'Map',
+      category: 'pure',
+      dataType: 'map',
+      outputs: [
+        { id: 'value-out', label: '', direction: 'source', dataType: 'map' },
+      ],
+      values: { value: '' },
+    },
+  },
 };
 
 export function createNodeFromType(type: string, position: XYPosition): Node {
@@ -351,6 +375,8 @@ export const sidebarCategories: SidebarCategory[] = [
       { type: 'constFloat', label: 'Float', category: 'pure' },
       { type: 'constInt', label: 'Int', category: 'pure' },
       { type: 'constBool', label: 'Bool', category: 'pure' },
+      { type: 'constArray', label: 'Array', category: 'pure' },
+      { type: 'constMap', label: 'Map', category: 'pure' },
     ],
   },
   {
