@@ -1,9 +1,15 @@
-import { useCallback } from 'react';
-import { BaseEdge, getBezierPath, useReactFlow, type EdgeProps } from '@xyflow/react';
+import { useCallback, useMemo } from 'react';
+import { BaseEdge, getBezierPath, useReactFlow, useStore, type EdgeProps } from '@xyflow/react';
 import { useExecutionStore } from '../store/executionStore';
+import { PIN_COLORS } from '../types';
+import type { PinDataType } from '../types';
 
 export function BlueprintEdge({
   id,
+  source,
+  sourceHandle,
+  target,
+  targetHandle,
   sourceX,
   sourceY,
   targetX,
@@ -25,7 +31,27 @@ export function BlueprintEdge({
     curvature: 0.4,
   });
 
-  const edgeColor = (data as { pinColor?: string } | undefined)?.pinColor ?? '#b1b1b7';
+  const resolvedColor = useStore((s) => {
+    const storedColor = (data as { pinColor?: string } | undefined)?.pinColor;
+    if (!storedColor) return '#b1b1b7';
+
+    const sourceNode = s.nodes.find((n) => n.id === source);
+    const targetNode = s.nodes.find((n) => n.id === target);
+    const sourcePin = sourceNode?.data?.outputs?.find((p: { id?: string }) => p.id === sourceHandle);
+    const targetPin = targetNode?.data?.inputs?.find((p: { id?: string }) => p.id === targetHandle);
+    const sourceType = (sourcePin?.dataType as PinDataType) ?? 'wildcard';
+    const targetType = (targetPin?.dataType as PinDataType) ?? 'wildcard';
+
+    // If neither pin is wildcard, use stored color as-is
+    if (sourceType !== 'wildcard' && targetType !== 'wildcard') return storedColor;
+
+    // Otherwise resolve from the typed end
+    const resolvedType = sourceType === 'wildcard' ? targetType : sourceType;
+    if (resolvedType !== 'wildcard') return PIN_COLORS[resolvedType] ?? storedColor;
+    return storedColor;
+  });
+
+  const edgeColor = resolvedColor;
   const isExecution = (data as { dataType?: string } | undefined)?.dataType === 'execution';
   const activeEdgeId = useExecutionStore((s) => s.activeEdgeId);
   const isActive = activeEdgeId === id;

@@ -31,6 +31,7 @@ export function BaseNode({ id, data }: BaseNodeProps) {
 
   const resolvedPinColors = useStore((s) => {
     const colors = new Map<string, string>();
+    let inheritedColor: string | undefined;
     for (const e of s.edges) {
       const edgeType = (e.data as { dataType?: string } | undefined)?.dataType as PinDataType | undefined;
       if (!edgeType || edgeType === 'wildcard') continue;
@@ -39,12 +40,23 @@ export function BaseNode({ id, data }: BaseNodeProps) {
       // Target wildcard pin adopts source's type color
       if (e.target === id) {
         const targetPin = inputs.find((p) => p.id === e.targetHandle);
-        if (targetPin?.dataType === 'wildcard') colors.set(e.targetHandle!, color);
+        if (targetPin?.dataType === 'wildcard') {
+          colors.set(e.targetHandle!, color);
+          inheritedColor = color;
+        }
       }
       // Source wildcard pin adopts target's type color
       if (e.source === id) {
         const sourcePin = outputs.find((p) => p.id === e.sourceHandle);
         if (sourcePin?.dataType === 'wildcard') colors.set(e.sourceHandle!, color);
+      }
+    }
+    // Propagate inherited type color to all unconnected wildcard outputs
+    if (inheritedColor) {
+      for (const out of outputs) {
+        if (out.dataType === 'wildcard' && !colors.has(out.id)) {
+          colors.set(out.id, inheritedColor);
+        }
       }
     }
     return colors;
