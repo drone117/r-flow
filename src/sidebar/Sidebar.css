@@ -117,7 +117,7 @@
 
 .sidebar__category-header--highlighted {
   background: rgba(200, 168, 50, 0.15);
-  animation: sidebar-highlight 1.5s ease forwards;
+  animation: sidebar-highlight 0.5s ease 3;
 }
 
 @keyframes sidebar-highlight {
