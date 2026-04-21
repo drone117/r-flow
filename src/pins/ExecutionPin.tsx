@@ -13,6 +13,7 @@ export function ExecutionPin({ id, type, position = Position.Left }: ExecutionPi
       position={position}
       id={id}
       className="ue-handle ue-handle--execution"
+      data-datatype="execution"
     />
   );
 }

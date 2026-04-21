@@ -84,6 +84,33 @@ function CanvasInner() {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        isValidConnection={(connection) => {
+          const { source, target, sourceHandle, targetHandle } = connection;
+
+          if (source === target) return false;
+
+          const sourceNode = nodes.find((n) => n.id === source);
+          const targetNode = nodes.find((n) => n.id === target);
+          if (!sourceNode || !targetNode) return false;
+
+          const sourcePin = (sourceNode.data as { outputs?: { id: string; dataType: string }[] }).outputs?.find(
+            (p) => p.id === sourceHandle,
+          ) ?? (sourceNode.data as { inputs?: { id: string; dataType: string }[] }).inputs?.find(
+            (p) => p.id === sourceHandle,
+          );
+          const targetPin = (targetNode.data as { inputs?: { id: string; dataType: string }[] }).inputs?.find(
+            (p) => p.id === targetHandle,
+          ) ?? (targetNode.data as { outputs?: { id: string; dataType: string }[] }).outputs?.find(
+            (p) => p.id === targetHandle,
+          );
+
+          const sourceType = sourcePin?.dataType ?? 'wildcard';
+          const targetType = targetPin?.dataType ?? 'wildcard';
+
+          if (sourceType === 'wildcard' || targetType === 'wildcard') return true;
+
+          return sourceType === targetType;
+        }}
         onDragOver={onDragOver}
         onDrop={onDrop}
         snapToGrid={snapEnabled}
