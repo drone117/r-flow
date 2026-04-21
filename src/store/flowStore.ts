@@ -98,19 +98,6 @@ const initialNodes: Node[] = [
       values: { 'string-in': 'Second message' },
     },
   },
-  {
-    id: 'var-1',
-    type: 'variableNode',
-    position: { x: 60, y: 380 },
-    data: {
-      label: 'Get "Counter"',
-      category: 'variable',
-      outputs: [
-        { id: 'value-out', label: 'Value', direction: 'source', dataType: 'string' },
-      ],
-      values: { 'value-out': '42' },
-    },
-  },
 ];
 
 const initialEdges: Edge[] = [
