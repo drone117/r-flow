@@ -203,9 +203,6 @@
   background: var(--ue-color-comment);
   border-color: var(--ue-color-comment-border);
   min-width: 160px;
-  max-width: 800px;
-  resize: horizontal;
-  overflow: hidden;
   backdrop-filter: blur(2px);
 }
 
@@ -232,6 +229,22 @@
   font-family: var(--ue-font-ui);
   color: rgba(255, 255, 255, 0.7);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.blueprint-node__resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  z-index: 10;
+  border-radius: 0 3px 3px 0;
+  transition: background 0.15s;
+}
+
+.blueprint-node__resize-handle:hover {
+  background: rgba(200, 168, 50, 0.25);
 }
 
 /* ── Constant node ──────────────────────────────── */
