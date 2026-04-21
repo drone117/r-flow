@@ -33,22 +33,29 @@ export function BaseNode({ id, data }: BaseNodeProps) {
     const colors = new Map<string, string>();
     let inheritedColor: string | undefined;
     for (const e of s.edges) {
-      const edgeType = (e.data as { dataType?: string } | undefined)?.dataType as PinDataType | undefined;
-      if (!edgeType || edgeType === 'wildcard') continue;
-      const color = PIN_COLORS[edgeType];
+      // Resolve the effective type dynamically from pin definitions, not stored edge data
+      const sourceNode = s.nodes.find((n) => n.id === e.source);
+      const targetNode = s.nodes.find((n) => n.id === e.target);
+      const sourcePin = sourceNode?.data?.outputs?.find((p: { id?: string }) => p.id === e.sourceHandle);
+      const targetPin = targetNode?.data?.inputs?.find((p: { id?: string }) => p.id === e.targetHandle);
+      const sourceType = (sourcePin?.dataType as PinDataType) ?? 'wildcard';
+      const targetType = (targetPin?.dataType as PinDataType) ?? 'wildcard';
+      const effectiveType = sourceType === 'wildcard' ? targetType : sourceType;
+      if (effectiveType === 'wildcard') continue;
+      const color = PIN_COLORS[effectiveType];
       if (!color) continue;
       // Target wildcard pin adopts source's type color
       if (e.target === id) {
-        const targetPin = inputs.find((p) => p.id === e.targetHandle);
-        if (targetPin?.dataType === 'wildcard') {
+        const localTargetPin = inputs.find((p) => p.id === e.targetHandle);
+        if (localTargetPin?.dataType === 'wildcard') {
           colors.set(e.targetHandle!, color);
           inheritedColor = color;
         }
       }
       // Source wildcard pin adopts target's type color
       if (e.source === id) {
-        const sourcePin = outputs.find((p) => p.id === e.sourceHandle);
-        if (sourcePin?.dataType === 'wildcard') colors.set(e.sourceHandle!, color);
+        const localSourcePin = outputs.find((p) => p.id === e.sourceHandle);
+        if (localSourcePin?.dataType === 'wildcard') colors.set(e.sourceHandle!, color);
       }
     }
     // Propagate inherited type color to all unconnected wildcard outputs
