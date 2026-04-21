@@ -1,0 +1,137 @@
+.blueprint-node {
+  min-width: 180px;
+  max-width: 300px;
+  background: var(--ue-node-bg);
+  border: 1px solid var(--ue-node-border);
+  border-radius: var(--ue-node-radius);
+  box-shadow: var(--ue-node-shadow);
+  font-size: 12px;
+  color: var(--ue-text-primary);
+  overflow: hidden;
+}
+
+.blueprint-node__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  height: var(--ue-node-header-height);
+  background: var(--header-color);
+  border-radius: var(--ue-node-radius) var(--ue-node-radius) 0 0;
+  user-select: none;
+}
+
+.blueprint-node__header-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.blueprint-node__header-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ue-text-header);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+
+.blueprint-node__body {
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.blueprint-node__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 12px;
+  min-height: 22px;
+  position: relative;
+}
+
+.blueprint-node__row--inputs {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.blueprint-node__row--outputs {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.blueprint-node__row--both {
+  justify-content: space-between;
+}
+
+.blueprint-node__pin-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.blueprint-node__pin-group--right {
+  margin-left: auto;
+}
+
+.blueprint-node__pin-label {
+  font-size: 11px;
+  color: var(--ue-text-secondary);
+  font-family: var(--ue-font-mono);
+  white-space: nowrap;
+}
+
+.blueprint-node__pin-label--left {
+  margin-left: 4px;
+}
+
+.blueprint-node__pin-label--right {
+  margin-right: 4px;
+}
+
+/* Comment node */
+.blueprint-node--comment {
+  background: var(--ue-color-comment);
+  border-color: var(--ue-color-comment-border);
+  min-width: 200px;
+  max-width: 600px;
+}
+
+.blueprint-node--comment .blueprint-node__body {
+  padding: 10px 14px;
+}
+
+.blueprint-node--comment .blueprint-node__comment-text {
+  font-size: 12px;
+  color: var(--ue-pin-float);
+  font-style: italic;
+  line-height: 1.4;
+  resize: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  min-height: 30px;
+  font-family: var(--ue-font-ui);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Node resizer for comment */
+.react-flow__node-resizer {
+  border: none;
+  background: transparent;
+}
+
+.react-flow__node-resizer .react-flow__resize-control.line {
+  border-color: rgba(200, 168, 50, 0.3);
+}
+
+.react-flow__node-resizer .react-flow__resize-control.handle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(200, 168, 50, 0.6);
+  border: 1px solid rgba(200, 168, 50, 0.8);
+}

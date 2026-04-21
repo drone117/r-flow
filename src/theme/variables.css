@@ -1,0 +1,57 @@
+:root {
+  /* Canvas */
+  --ue-bg-primary: #1a1a2e;
+  --ue-bg-secondary: #16213e;
+  --ue-grid-color: rgba(255, 255, 255, 0.06);
+  --ue-grid-size: 20px;
+
+  /* Node base */
+  --ue-node-bg: #252540;
+  --ue-node-border: #3a3a5c;
+  --ue-node-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --ue-node-shadow-selected: 0 0 0 2px rgba(255, 255, 255, 0.3), 0 4px 16px rgba(0, 0, 0, 0.5);
+  --ue-node-radius: 8px;
+  --ue-node-header-height: 30px;
+
+  /* Category colors */
+  --ue-color-function: #2d5baa;
+  --ue-color-event: #8b1a1a;
+  --ue-color-variable: #1a6b3c;
+  --ue-color-math: #1a6b6b;
+  --ue-color-flow-control: #555566;
+  --ue-color-comment: rgba(200, 168, 50, 0.12);
+  --ue-color-comment-border: rgba(200, 168, 50, 0.5);
+  --ue-color-pure: #3d3d5c;
+
+  /* Pin colors (UE-accurate) */
+  --ue-pin-execution: #ffffff;
+  --ue-pin-float: #e8d44d;
+  --ue-pin-int: #1bc6a0;
+  --ue-pin-string: #f050a0;
+  --ue-pin-bool: #cc0000;
+  --ue-pin-object: #0066ff;
+  --ue-pin-wildcard: #aaaaaa;
+
+  /* Sidebar */
+  --ue-sidebar-bg: #1e1e38;
+  --ue-sidebar-border: #2a2a4e;
+  --ue-sidebar-width: 240px;
+  --ue-sidebar-category-bg: #222240;
+  --ue-sidebar-item-hover: #2e2e52;
+
+  /* Toolbar */
+  --ue-toolbar-bg: rgba(26, 26, 46, 0.92);
+  --ue-toolbar-border: #2a2a4e;
+  --ue-toolbar-btn-hover: #2e2e52;
+  --ue-toolbar-btn-active: #3d3d6b;
+
+  /* Text */
+  --ue-text-primary: #e0e0e0;
+  --ue-text-secondary: #999;
+  --ue-text-header: #ffffff;
+  --ue-text-muted: #666;
+
+  /* Fonts */
+  --ue-font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --ue-font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}

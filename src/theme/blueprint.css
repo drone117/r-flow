@@ -1,0 +1,108 @@
+@import './variables.css';
+
+/* React Flow built-in overrides */
+.react-flow {
+  --xy-background-pattern-dots-color-default: var(--ue-grid-color);
+  --xy-node-background-color-default: var(--ue-node-bg);
+  --xy-node-border-default: 1px solid var(--ue-node-border);
+  --xy-node-color-default: var(--ue-text-primary);
+  --xy-edge-stroke-default: #b1b1b7;
+  --xy-edge-stroke-width-default: 2;
+  --xy-minimap-background-color-default: var(--ue-bg-secondary);
+  --xy-minimap-mask-color-default: rgba(0, 0, 0, 0.7);
+  --xy-controls-button-background-color-default: var(--ue-toolbar-bg);
+  --xy-controls-button-border-color-default: var(--ue-toolbar-border);
+  --xy-controls-button-color-default: var(--ue-text-primary);
+  --xy-controls-button-hover-background-color-default: var(--ue-toolbar-btn-hover);
+  background: var(--ue-bg-primary) !important;
+}
+
+/* Nodes */
+.react-flow__node {
+  border-radius: var(--ue-node-radius);
+  box-shadow: var(--ue-node-shadow);
+  font-family: var(--ue-font-ui);
+  font-size: 12px;
+}
+
+.react-flow__node.selected,
+.react-flow__node:focus,
+.react-flow__node:focus-visible {
+  box-shadow: var(--ue-node-shadow-selected);
+  outline: none;
+}
+
+/* Handles */
+.react-flow__handle {
+  transition: transform 0.15s ease;
+}
+
+.react-flow__handle:hover {
+  transform: scale(1.3);
+}
+
+/* Execution pin triangles */
+.ue-handle--execution {
+  width: 14px !important;
+  height: 14px !important;
+  background: var(--ue-pin-execution) !important;
+  border: none !important;
+  opacity: 0.9;
+}
+
+.ue-handle--execution:hover {
+  opacity: 1;
+}
+
+.ue-handle--execution[data-handlepos="left"] {
+  clip-path: polygon(100% 50%, 0% 0%, 0% 100%);
+}
+
+.ue-handle--execution[data-handlepos="right"] {
+  clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
+}
+
+/* Data pin circles */
+.ue-handle--data {
+  width: 10px !important;
+  height: 10px !important;
+  border: 2px solid rgba(0, 0, 0, 0.35) !important;
+  border-radius: 50% !important;
+  opacity: 0.9;
+}
+
+.ue-handle--data:hover {
+  opacity: 1;
+  transform: scale(1.3);
+}
+
+.ue-handle--data[data-datatype="float"]    { background: var(--ue-pin-float) !important; }
+.ue-handle--data[data-datatype="int"]      { background: var(--ue-pin-int) !important; }
+.ue-handle--data[data-datatype="string"]   { background: var(--ue-pin-string) !important; }
+.ue-handle--data[data-datatype="bool"]     { background: var(--ue-pin-bool) !important; }
+.ue-handle--data[data-datatype="object"]   { background: var(--ue-pin-object) !important; }
+.ue-handle--data[data-datatype="wildcard"] { background: var(--ue-pin-wildcard) !important; }
+
+/* Edges */
+.react-flow__edge-path {
+  stroke-linecap: round;
+}
+
+/* Minimap */
+.react-flow__minimap {
+  border-radius: var(--ue-node-radius);
+  border: 1px solid var(--ue-sidebar-border);
+  overflow: hidden;
+}
+
+/* Selection */
+.react-flow__selection {
+  background: rgba(100, 100, 200, 0.08);
+  border: 1px solid rgba(100, 100, 200, 0.3);
+  border-radius: 4px;
+}
+
+/* Attribution hidden */
+.react-flow__attribution {
+  display: none;
+}
