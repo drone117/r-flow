@@ -115,6 +115,16 @@
   background: var(--ue-sidebar-item-hover);
 }
 
+.sidebar__category-header--highlighted {
+  background: rgba(200, 168, 50, 0.15);
+  animation: sidebar-highlight 1.5s ease forwards;
+}
+
+@keyframes sidebar-highlight {
+  0% { background: rgba(200, 168, 50, 0.25); }
+  100% { background: transparent; }
+}
+
 .sidebar__category-arrow {
   font-size: 8px;
   transition: transform 0.25s ease;

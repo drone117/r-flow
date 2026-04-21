@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { sidebarCategories } from '../components/nodeFactory';
 import { SidebarCategory } from './SidebarCategory';
 import './Sidebar.css';
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [highlighted, setHighlighted] = useState<string | null>(null);
+
+  const handleExpand = useCallback((categoryName: string) => {
+    setCollapsed(false);
+    setHighlighted(categoryName);
+    setTimeout(() => setHighlighted(null), 1500);
+  }, []);
 
   return (
     <div className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
@@ -20,7 +27,13 @@ export function Sidebar() {
       </div>
       <div className="sidebar__content">
         {sidebarCategories.map((cat) => (
-          <SidebarCategory key={cat.name} category={cat} collapsed={collapsed} />
+          <SidebarCategory
+            key={cat.name}
+            category={cat}
+            collapsed={collapsed}
+            highlighted={highlighted === cat.name}
+            onExpand={handleExpand}
+          />
         ))}
       </div>
     </div>

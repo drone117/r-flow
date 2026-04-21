@@ -18,9 +18,11 @@ const CATEGORY_ICONS: Record<string, string> = {
 interface SidebarCategoryProps {
   category: SidebarCategoryType;
   collapsed?: boolean;
+  highlighted?: boolean;
+  onExpand?: (categoryName: string) => void;
 }
 
-export function SidebarCategory({ category, collapsed }: SidebarCategoryProps) {
+export function SidebarCategory({ category, collapsed, highlighted, onExpand }: SidebarCategoryProps) {
   const [isOpen, setIsOpen] = useState(true);
   const iconKey = CATEGORY_ICONS[category.name] ?? '';
 
@@ -29,6 +31,7 @@ export function SidebarCategory({ category, collapsed }: SidebarCategoryProps) {
       <button
         className="sidebar__category-icon-btn"
         title={category.name}
+        onClick={() => onExpand?.(category.name)}
       >
         <NodeIcon category={iconKey} />
       </button>
@@ -38,7 +41,7 @@ export function SidebarCategory({ category, collapsed }: SidebarCategoryProps) {
   return (
     <div className="sidebar__category">
       <button
-        className="sidebar__category-header"
+        className={`sidebar__category-header ${highlighted ? 'sidebar__category-header--highlighted' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{category.name}</span>
