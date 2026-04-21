@@ -4,7 +4,7 @@
 .react-flow {
   --xy-background-pattern-dots-color-default: var(--ue-grid-color);
   --xy-node-background-color-default: var(--ue-node-bg);
-  --xy-node-border-default: 1px solid var(--ue-node-border);
+  --xy-node-border-default: none;
   --xy-node-color-default: var(--ue-text-primary);
   --xy-edge-stroke-default: #b1b1b7;
   --xy-edge-stroke-width-default: 2;

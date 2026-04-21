@@ -2,14 +2,14 @@
   min-width: 180px;
   max-width: 300px;
   background: var(--ue-node-bg);
-  border: 1px solid var(--ue-node-border);
+  border: none;
   border-radius: var(--ue-node-radius);
-  box-shadow: var(--ue-node-shadow);
+  box-shadow: 0 0 0 1px var(--ue-node-border), var(--ue-node-shadow);
   font-size: 12px;
   color: var(--ue-text-primary);
   position: relative;
   overflow: visible;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition: box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 /* Inset top-edge highlight for a "beveled" feel */
@@ -38,13 +38,13 @@
 
 /* Hover state */
 .blueprint-node:hover {
-  border-color: var(--ue-node-border-highlight);
+  box-shadow: 0 0 0 1px var(--ue-node-border-highlight), var(--ue-node-shadow);
 }
 
 /* Executing glow */
 .blueprint-node--executing {
-  border-color: rgba(200, 168, 50, 0.6) !important;
   box-shadow:
+    0 0 0 1px rgba(200, 168, 50, 0.6),
     0 0 8px 2px rgba(200, 168, 50, 0.3),
     0 0 20px 4px rgba(200, 168, 50, 0.15),
     var(--ue-node-shadow) !important;
@@ -54,12 +54,14 @@
 @keyframes node-exec-glow {
   from {
     box-shadow:
+      0 0 0 1px rgba(200, 168, 50, 0.6),
       0 0 8px 2px rgba(200, 168, 50, 0.3),
       0 0 20px 4px rgba(200, 168, 50, 0.15),
       var(--ue-node-shadow);
   }
   to {
     box-shadow:
+      0 0 0 1px rgba(200, 168, 50, 0.6),
       0 0 12px 4px rgba(200, 168, 50, 0.5),
       0 0 30px 8px rgba(200, 168, 50, 0.25),
       var(--ue-node-shadow);
@@ -259,7 +261,7 @@
 /* ── Comment node ───────────────────────────────── */
 .blueprint-node--comment {
   background: var(--ue-color-comment);
-  border-color: var(--ue-color-comment-border);
+  box-shadow: 0 0 0 1px var(--ue-color-comment-border), var(--ue-node-shadow);
   min-width: 160px;
   max-width: none;
   width: 100%;
@@ -268,7 +270,7 @@
 }
 
 .blueprint-node--comment:hover {
-  border-color: rgba(200, 168, 50, 0.7);
+  box-shadow: 0 0 0 1px rgba(200, 168, 50, 0.7), var(--ue-node-shadow);
   background: rgba(200, 168, 50, 0.16);
 }
 
