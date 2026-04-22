@@ -108,7 +108,11 @@ function CanvasInner() {
           const sourceType = sourcePin?.dataType ?? 'wildcard';
           const targetType = targetPin?.dataType ?? 'wildcard';
 
-          if (sourceType === 'wildcard' || targetType === 'wildcard') return true;
+          if (sourceType === 'wildcard' || targetType === 'wildcard') {
+            const targetLabel = (targetNode.data as { label?: string }).label;
+            if (targetLabel === 'Multiply' && (sourceType === 'string' || targetType === 'string')) return false;
+            return true;
+          }
           if (sourceType === targetType) return true;
           if (sourceType === 'execution' || targetType === 'execution') return false;
           if (sourceType === 'object' || targetType === 'object') return false;
