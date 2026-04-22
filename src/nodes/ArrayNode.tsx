@@ -22,15 +22,6 @@ import { PinLabel } from '../pins/PinLabel';
 import { useExecutionStore } from '../store/executionStore';
 import './BaseNode.css';
 
-/** Pin color per element type — used for the header and type badge. */
-const ELEMENT_COLORS: Record<string, string> = {
-  string: '#f050a0',
-  float: '#e8d44d',
-  int: '#1bc6a0',
-  bool: '#cc0000',
-  object: '#0066ff',
-};
-
 /** A single item in the array. */
 interface ArrayItem {
   id: string;
@@ -43,7 +34,7 @@ export function ArrayNode({ id, data }: NodeProps) {
     elementType?: string;
     items?: ArrayItem[];
   };
-  const pinColor = ELEMENT_COLORS[elementType] ?? '#aaaaaa';
+  const pinColor = PIN_COLORS[elementType as PinDataType] ?? '#aaaaaa';
   const displayType = (elementType as string).charAt(0).toUpperCase() + (elementType as string).slice(1);
   const activeNodeId = useExecutionStore((s) => s.activeNodeId);
   const isActive = activeNodeId === id;

@@ -40,13 +40,6 @@ export function NodeIcon({ category, label }: NodeIconProps) {
           <path d="M8 1L9.5 6H14.5L10.5 9L12 14L8 11L4 14L5.5 9L1.5 6H6.5L8 1Z" fill="rgba(255,255,255,0.85)" />
         </svg>
       );
-    case 'variable':
-      return (
-        <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />
-          <circle cx="8" cy="8" r="2" fill="rgba(255,255,255,0.85)" />
-        </svg>
-      );
     case 'math':
       if (label === 'Multiply') {
         // × symbol for multiplication
@@ -99,14 +92,6 @@ export function NodeIcon({ category, label }: NodeIconProps) {
         <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
           <rect x="2" y="2" width="12" height="12" rx="2" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />
           <path d="M5 6H11M5 8H11M5 10H11" stroke="rgba(255,255,255,0.85)" strokeWidth="1" strokeLinecap="round" />
-        </svg>
-      );
-    case 'map':
-      return (
-        <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="2" width="12" height="12" rx="2" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />
-          <path d="M5 6H7M9 6H11M5 10H7M9 10H11" stroke="rgba(255,255,255,0.85)" strokeWidth="1" strokeLinecap="round" />
-          <path d="M8 5V7M8 9V11" stroke="rgba(255,255,255,0.5)" strokeWidth="1" strokeLinecap="round" />
         </svg>
       );
     case 'constant':

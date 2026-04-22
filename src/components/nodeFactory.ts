@@ -24,11 +24,7 @@
  */
 import type { Node, XYPosition } from '@xyflow/react';
 import type { PinConfig } from '../types';
-
-/** Generate a unique node ID using timestamp + random suffix. */
-function generateId(): string {
-  return `node-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
+import { generateId } from '../utils/idUtils';
 
 /** Template for creating a new node. Matches the Node.data shape. */
 interface NodeTemplate {
@@ -73,20 +69,6 @@ const templates: Record<string, NodeTemplate> = {
       ],
       outputs: [
         { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
-      ],
-    },
-  },
-  delay: {
-    type: 'functionNode',
-    data: {
-      label: 'Delay',
-      category: 'function',
-      inputs: [
-        { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
-        { id: 'duration', label: 'Duration', direction: 'target', dataType: 'float' },
-      ],
-      outputs: [
-        { id: 'exec-out', label: 'Completed', direction: 'source', dataType: 'execution' },
       ],
     },
   },

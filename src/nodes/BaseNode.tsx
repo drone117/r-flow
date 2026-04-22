@@ -26,7 +26,7 @@
  *     to prevent React Flow from interpreting clicks/selections as node drags
  *   - The `nodrag` CSS class on inputs also prevents drag interference
  */
-import { type NodeProps, Position, useReactFlow, useStore } from '@xyflow/react';
+import { type NodeProps, Position, useStore } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS, PIN_COLORS } from '../types';
 import type { PinDataType } from '../types';
@@ -35,6 +35,7 @@ import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
 import { NodeIcon } from '../components/NodeIcon';
 import { useExecutionStore } from '../store/executionStore';
+import { useNodeValueUpdater, useConnectedInputIds } from '../hooks/useNodeHelpers';
 import './BaseNode.css';
 
 interface BaseNodeProps extends NodeProps {
@@ -42,28 +43,15 @@ interface BaseNodeProps extends NodeProps {
 }
 
 export function BaseNode({ id, data }: BaseNodeProps) {
-  const { setNodes } = useReactFlow();
-  const { label, category, inputs = [], outputs = [], icon, values = {} } = data;
+  const { label, category, inputs = [], outputs = [], values = {} } = data;
   const headerColor = CATEGORY_COLORS[category] ?? '#3a3a5c';
 
   // Check if this node is currently being executed (for glow animation)
   const activeNodeId = useExecutionStore((s) => s.activeNodeId);
   const isActive = activeNodeId === id;
 
-  /**
-   * Set of input pin IDs that have an incoming edge connected.
-   * Used to hide the inline value editor when a pin is wired.
-   * Derived from the global edge state via useStore (re-renders on edge changes).
-   */
-  const connectedInputIds = useStore((s) => {
-    const ids = new Set<string>();
-    for (const e of s.edges) {
-      if (e.target === id) {
-        ids.add(e.targetHandle!);
-      }
-    }
-    return ids;
-  });
+  /** Set of input pin IDs that have an incoming edge connected. */
+  const connectedInputIds = useConnectedInputIds(id);
 
   /**
    * Resolve wildcard pin colors from connected edges.
@@ -129,20 +117,7 @@ export function BaseNode({ id, data }: BaseNodeProps) {
   const maxRows = Math.max(inputs.length, outputs.length, 1);
 
   /** Update a value in this node's data.values map. Called by inline editors. */
-  const onValueChange = (pinId: string, value: string) => {
-    setNodes((nds) =>
-      nds.map((n) => {
-        if (n.id !== id) return n;
-        return {
-          ...n,
-          data: {
-            ...n.data,
-            values: { ...(n.data as BlueprintNodeData).values, [pinId]: value },
-          },
-        };
-      }),
-    );
-  };
+  const onValueChange = useNodeValueUpdater(id);
 
   return (
     <div

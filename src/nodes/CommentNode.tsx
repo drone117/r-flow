@@ -22,13 +22,8 @@ import { type NodeProps, useReactFlow } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS } from '../types';
 import { NodeIcon } from '../components/NodeIcon';
+import { autoResizeTextarea } from '../hooks/useNodeHelpers';
 import './BaseNode.css';
-
-/** Auto-resize a textarea to fit its content. */
-function autoResize(el: HTMLTextAreaElement) {
-  el.style.height = 'auto';
-  el.style.height = el.scrollHeight + 'px';
-}
 
 export function CommentNode({ id, data }: NodeProps) {
   const { label, commentText } = data as BlueprintNodeData;
@@ -41,7 +36,7 @@ export function CommentNode({ id, data }: NodeProps) {
   // Auto-resize on mount
   useEffect(() => {
     if (textareaRef.current) {
-      autoResize(textareaRef.current);
+      autoResizeTextarea(textareaRef.current);
     }
   }, []);
 
@@ -100,7 +95,7 @@ export function CommentNode({ id, data }: NodeProps) {
           defaultValue={commentText ?? ''}
           placeholder="Add a comment..."
           rows={1}
-          onInput={(e) => autoResize(e.currentTarget)}
+          onInput={(e) => autoResizeTextarea(e.currentTarget)}
           onKeyDown={(e) => {
             // Enter without Shift blurs the textarea (single-line mode)
             if (e.key === 'Enter' && !e.shiftKey) {

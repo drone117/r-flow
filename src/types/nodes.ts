@@ -14,9 +14,8 @@
 
 /** Which category a node belongs to. Used for header coloring and icon selection. */
 export type NodeCategory =
-  | 'function'    // Nodes that perform an action (Print String, Delay, HTTP Request)
+  | 'function'    // Nodes that perform an action (Print String, HTTP Request)
   | 'event'       // Entry-point nodes triggered by external events
-  | 'variable'    // Nodes that read/write variables (currently unused)
   | 'math'        // Nodes that perform arithmetic (Add, Multiply, Clamp)
   | 'branch'      // Nodes that split execution into two paths (Branch)
   | 'loop'        // Nodes that repeat execution (For Loop, While Loop, For Each Loop)
@@ -94,7 +93,6 @@ export const PIN_COLORS: Record<PinDataType, string> = {
 export const CATEGORY_COLORS: Record<NodeCategory, string> = {
   function:   '#2d5baa',
   event:      '#8b1a1a',
-  variable:   '#1a6b3c',
   math:       '#1a6b6b',
   branch:     '#555566',
   loop:       '#555566',

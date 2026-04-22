@@ -8,6 +8,7 @@
  */
 
 import type { PinDataType } from '../types';
+import { TYPE_LABELS } from './typeLabels';
 
 /** The set of types that can be converted between each other. */
 const CONVERTIBLE_TYPES: Set<PinDataType> = new Set(['float', 'int', 'string', 'bool', 'json']);
@@ -62,14 +63,6 @@ export function convertValue(value: string, from: PinDataType, to: PinDataType):
 }
 
 /** Human-readable label for a conversion, e.g., "Float → String". */
-const TYPE_LABELS: Record<string, string> = {
-  float: 'Float',
-  int: 'Int',
-  string: 'String',
-  bool: 'Bool',
-  json: 'JSON',
-};
-
 export function getConversionLabel(from: PinDataType, to: PinDataType): string {
   const toLabel = TYPE_LABELS[to] ?? to;
   const fromLabel = TYPE_LABELS[from] ?? from;

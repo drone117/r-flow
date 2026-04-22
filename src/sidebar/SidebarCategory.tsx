@@ -22,10 +22,8 @@ import { SidebarItem } from './SidebarItem';
 const CATEGORY_ICONS: Record<string, string> = {
   Events: 'event',
   Functions: 'function',
-  Variables: 'variable',
   Constants: 'constant',
   Arrays: 'array',
-  Maps: 'map',
   Math: 'math',
   'Flow Control': 'flowcontrol',
   Utilities: 'utilities',

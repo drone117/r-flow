@@ -16,31 +16,18 @@
  * JSON constants have on-blur validation — the textarea border turns red
  * if the content isn't valid JSON.
  */
-import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
+import { type NodeProps, Position } from '@xyflow/react';
 import { useState } from 'react';
 import type { BlueprintNodeData } from '../types';
 import { PIN_COLORS } from '../types';
+import type { PinDataType } from '../types';
 import { DataPin } from '../pins/DataPin';
+import { TYPE_LABELS } from '../utils/typeLabels';
+import { useNodeValueUpdater, autoResizeTextarea } from '../hooks/useNodeHelpers';
 import './BaseNode.css';
 
-type ConstType = string;
-
-/** Human-readable labels shown in the type badge. */
-const TYPE_LABELS: Record<ConstType, string> = {
-  execution: 'Exec',
-  float: 'Float',
-  int: 'Int',
-  string: 'String',
-  bool: 'Bool',
-  object: 'Object',
-  wildcard: 'Any',
-  array: 'Array',
-  map: 'Map',
-  json: 'JSON',
-};
-
 /** Header background color per type — matches the pin color system. */
-const TYPE_HEADERS: Record<ConstType, string> = {
+const TYPE_HEADERS: Record<string, string> = {
   execution: '#ffffff',
   float: '#e8d44d',
   int: '#1bc6a0',
@@ -57,31 +44,17 @@ const TYPE_HEADERS: Record<ConstType, string> = {
 const MULTI_LINE_TYPES = new Set(['array', 'map', 'json']);
 
 export function ConstantNode({ id, data }: NodeProps) {
-  const { setNodes } = useReactFlow();
   const { label, values = {} } = data as BlueprintNodeData;
-  const dataType = (data.dataType as ConstType) ?? 'string';
+  const dataType = (data.dataType as string) ?? 'string';
   const headerColor = TYPE_HEADERS[dataType] ?? '#aaaaaa';
   const value = values['value'] ?? '';
-  const pinColor = PIN_COLORS[dataType as keyof typeof PIN_COLORS] ?? '#aaaaaa';
+  const pinColor = PIN_COLORS[dataType as PinDataType] ?? '#aaaaaa';
   const isMultiLine = MULTI_LINE_TYPES.has(dataType);
   const isJson = dataType === 'json';
   const [jsonValid, setJsonValid] = useState(true);
 
   /** Update the stored value for this constant node. */
-  const onValueChange = (val: string) => {
-    setNodes((nds) =>
-      nds.map((n) => {
-        if (n.id !== id) return n;
-        return {
-          ...n,
-          data: {
-            ...n.data,
-            values: { ...(n.data as BlueprintNodeData).values, value: val },
-          },
-        };
-      }),
-    );
-  };
+  const updateValue = useNodeValueUpdater(id);
 
   /** Placeholder text varies by data type to guide the user. */
   const placeholder = dataType === 'array'
@@ -118,7 +91,7 @@ export function ConstantNode({ id, data }: NodeProps) {
             className={`blueprint-node__const-textarea nodrag ${isJson && !jsonValid ? 'blueprint-node__const-textarea--error' : ''}`}
             value={value}
             onChange={(e) => {
-              onValueChange(e.target.value);
+              updateValue('value', e.target.value);
               if (isJson) setJsonValid(true);
             }}
             onBlur={() => {
@@ -133,10 +106,7 @@ export function ConstantNode({ id, data }: NodeProps) {
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onInput={(e) => {
-              // Auto-resize to fit content
-              const el = e.currentTarget;
-              el.style.height = 'auto';
-              el.style.height = el.scrollHeight + 'px';
+              autoResizeTextarea(e.currentTarget);
             }}
           />
         ) : dataType === 'bool' ? (
@@ -146,7 +116,7 @@ export function ConstantNode({ id, data }: NodeProps) {
               <select
                 className="blueprint-node__const-select nodrag"
                 value={value}
-                onChange={(e) => onValueChange(e.target.value)}
+                onChange={(e) => updateValue('value', e.target.value)}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
               >
@@ -165,7 +135,7 @@ export function ConstantNode({ id, data }: NodeProps) {
               <input
                 className="blueprint-node__const-input"
                 value={value}
-                onChange={(e) => onValueChange(e.target.value)}
+                onChange={(e) => updateValue('value', e.target.value)}
                 placeholder={placeholder}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}

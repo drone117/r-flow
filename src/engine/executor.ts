@@ -55,6 +55,9 @@ interface ExecCtx {
   }>;
 }
 
+/** Maximum total execution steps across all branches (safety limit). */
+const MAX_STEPS = 1000;
+
 /** Promise-based sleep utility, used for animation delay between nodes. */
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -122,8 +125,8 @@ function resolveOutputValue(
   if (!node) return '';
   const data = node.data as BlueprintNodeData;
 
-  // Constants and variables: just return the stored value
-  if (data.category === 'variable' || node.type === 'constantNode') {
+  // Constants: just return the stored value
+  if (node.type === 'constantNode') {
     return data.values?.[handleId] ?? data.values?.['value'] ?? '';
   }
 
@@ -207,6 +210,56 @@ function followExecAll(ctx: ExecCtx, nodeId: string, handleId: string): { target
 }
 
 /**
+ * Execute an HTTP Request node.
+ *
+ * Reads the URL, method, params, and body from the node's input pins,
+ * sends a proxied request via /api/request, and stores the response
+ * in ctx.requestResults for downstream nodes to read.
+ */
+async function executeHttpRequest(ctx: ExecCtx, nodeId: string): Promise<void> {
+  const url = resolveInputValue(ctx, nodeId, 'url');
+  const method = resolveInputValue(ctx, nodeId, 'method') || 'GET';
+  let paramsObj: Record<string, string> = {};
+  try { paramsObj = JSON.parse(resolveInputValue(ctx, nodeId, 'params') || '{}'); } catch { /* ignore */ }
+
+  // Only send a body for methods that support it
+  let fetchBody: string | undefined;
+  if (method !== 'GET' && method !== 'HEAD') {
+    const rawBody = resolveInputValue(ctx, nodeId, 'body');
+    if (rawBody) fetchBody = rawBody;
+  }
+
+  try {
+    ctx.emit(`  → ${method} ${url}`);
+    // The request goes to our Vite plugin (server-side), which
+    // forwards it to the actual URL, avoiding browser CORS restrictions
+    const response = await fetch('/api/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, method, params: paramsObj, body: fetchBody }),
+    });
+    const result = await response.json() as { status: number; headers: Record<string, string>; body: string; ok: boolean };
+    let jsonStr = '';
+    try { const parsed = JSON.parse(result.body); jsonStr = JSON.stringify(parsed); } catch { /* not JSON */ }
+
+    // Store the result so downstream nodes can read the outputs
+    ctx.requestResults.set(nodeId, {
+      status: result.status,
+      headers: JSON.stringify(result.headers),
+      json: jsonStr,
+      text: result.body,
+      ok: result.ok,
+    });
+    ctx.emit(`  ← ${result.status}`);
+  } catch (err) {
+    ctx.requestResults.set(nodeId, {
+      status: 0, headers: '{}', json: '', text: '', ok: false,
+    });
+    ctx.emit(`  ✗ Request failed: ${err instanceof TypeError ? 'CORS — the server does not allow cross-origin requests from the browser' : err}`);
+  }
+}
+
+/**
  * Recursively execute a node and all downstream nodes.
  *
  * This function:
@@ -230,7 +283,7 @@ async function executeNode(
   steps: { count: number },
 ): Promise<void> {
   // Safety limits
-  if (!nodeId || steps.count >= 1000) return;
+  if (!nodeId || steps.count >= MAX_STEPS) return;
 
   // Infinite loop detection: if this node is already on the current
   // execution path, we'd loop forever
@@ -252,60 +305,18 @@ async function executeNode(
 
   switch (data.category) {
     case 'function': {
-      // --- Print String: output the value of the 'string-in' pin ---
       if (data.label === 'Print String') {
         const value = resolveInputValue(ctx, nodeId, 'string-in');
         ctx.emit(value || '(empty string)');
       }
 
-      // --- Delay: wait for the specified number of seconds ---
       if (data.label === 'Delay') {
         const duration = parseFloat(resolveInputValue(ctx, nodeId, 'duration')) || 0;
         await wait(duration * 1000);
       }
 
-      // --- HTTP Request: make an API call through the backend proxy ---
       if (data.label === 'HTTP Request') {
-        const url = resolveInputValue(ctx, nodeId, 'url');
-        const method = resolveInputValue(ctx, nodeId, 'method') || 'GET';
-        let paramsObj: Record<string, string> = {};
-        try { paramsObj = JSON.parse(resolveInputValue(ctx, nodeId, 'params') || '{}'); } catch { /* ignore */ }
-
-        // Only send a body for methods that support it
-        let fetchBody: string | undefined;
-        if (method !== 'GET' && method !== 'HEAD') {
-          const rawBody = resolveInputValue(ctx, nodeId, 'body');
-          if (rawBody) fetchBody = rawBody;
-        }
-
-        try {
-          ctx.emit(`  → ${method} ${url}`);
-          // The request goes to our Vite plugin (server-side), which
-          // forwards it to the actual URL, avoiding browser CORS restrictions
-          const response = await fetch('/api/request', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url, method, params: paramsObj, body: fetchBody }),
-          });
-          const result = await response.json() as { status: number; headers: Record<string, string>; body: string; ok: boolean };
-          let jsonStr = '';
-          try { const parsed = JSON.parse(result.body); jsonStr = JSON.stringify(parsed); } catch { /* not JSON */ }
-
-          // Store the result so downstream nodes can read the outputs
-          ctx.requestResults.set(nodeId, {
-            status: result.status,
-            headers: JSON.stringify(result.headers),
-            json: jsonStr,
-            text: result.body,
-            ok: result.ok,
-          });
-          ctx.emit(`  ← ${result.status}`);
-        } catch (err) {
-          ctx.requestResults.set(nodeId, {
-            status: 0, headers: '{}', json: '', text: '', ok: false,
-          });
-          ctx.emit(`  ✗ Request failed: ${err instanceof TypeError ? 'CORS — the server does not allow cross-origin requests from the browser' : err}`);
-        }
+        await executeHttpRequest(ctx, nodeId);
       }
 
       // Follow all edges from exec-out (supports fan-out)
@@ -348,8 +359,28 @@ async function executeNode(
         }
         ctx.loopIndex.delete(nodeId);
         ctx.loopValue.delete(nodeId);
+      } else if (data.label === 'While Loop') {
+        // While Loop: evaluate the condition pin each iteration
+        const maxIterations = 1000 - steps.count; // Don't exceed global step limit
+        let iteration = 0;
+        while (iteration < maxIterations) {
+          const condition = resolveInputValue(ctx, nodeId, 'condition');
+          const isTrue = condition !== '' && condition !== 'false' && condition !== '0';
+          if (!isTrue) break;
+
+          ctx.loopIndex.set(nodeId, iteration);
+          for (const t of followExecAll(ctx, nodeId, 'body')) {
+            if (t.edgeId) ctx.onEdgeActive(t.edgeId);
+            await executeNode(ctx, t.targetId, new Set(ancestors), steps);
+          }
+          iteration++;
+        }
+        ctx.loopIndex.delete(nodeId);
+        if (iteration >= maxIterations) {
+          ctx.emit('  ⚠ While Loop exceeded maximum iterations — stopping.');
+        }
       } else {
-        // For Loop / While Loop: iterate from first-index to last-index
+        // For Loop: iterate from first-index to last-index
         const first = parseInt(resolveInputValue(ctx, nodeId, 'first-index'), 10) || 0;
         const last = parseInt(resolveInputValue(ctx, nodeId, 'last-index'), 10) || 0;
         for (let i = first; i <= last; i++) {
@@ -428,7 +459,7 @@ export async function executeGraph(
     const steps = { count: 0 };
     await executeNode(ctx, startNode.id, new Set(), steps);
 
-    if (steps.count >= 1000) {
+    if (steps.count >= MAX_STEPS) {
       onOutput('  ⚠ Max execution steps reached — stopping.');
     }
   }

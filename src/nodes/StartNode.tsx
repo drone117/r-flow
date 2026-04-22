@@ -17,7 +17,7 @@ import { useExecutionStore } from '../store/executionStore';
 import './BaseNode.css';
 
 export function StartNode({ id, data }: NodeProps) {
-  const { label, category, outputs = [] } = data as BlueprintNodeData;
+  const { label, outputs = [] } = data as BlueprintNodeData;
   const headerColor = CATEGORY_COLORS['start'];
   const activeNodeId = useExecutionStore((s) => s.activeNodeId);
   const isActive = activeNodeId === id;

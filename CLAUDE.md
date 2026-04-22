@@ -18,6 +18,14 @@ No test framework is configured.
 
 ## Architecture
 
+### Shared Utilities
+
+- **`src/utils/idUtils.ts`** — `generateId()` and `generateEdgeId()` for unique node/edge IDs
+- **`src/utils/conversionUtils.ts`** — Type conversion logic and `isConvertible()` check
+- **`src/utils/typeLabels.ts`** — Shared `TYPE_LABELS` map for human-readable type names
+- **`src/hooks/useNodeHelpers.ts`** — `useNodeValueUpdater()`, `useConnectedInputIds()`, and `autoResizeTextarea()` shared by multiple node components
+- **`src/hooks/useDnDContext.ts`** + **`src/hooks/DnDProvider.tsx`** + **`src/hooks/useDnD.ts`** — Drag-and-drop context (provider, context, and consumer hook)
+
 ### State Management (Zustand)
 
 Three stores in `src/store/`:
@@ -59,7 +67,7 @@ When a user connects two pins of different but compatible data types, `flowStore
 
 1. Add a template to `src/components/nodeFactory.ts` (`templates` map + `sidebarCategories` array)
 2. If it needs custom rendering, create a component in `src/nodes/` and register it in `src/nodes/nodeTypes.ts`
-3. If it has new execution behavior, add a case in `src/engine/executor.ts` `processNode()`
+3. If it has new execution behavior, add a case in `src/engine/executor.ts` `executeNode()`
 4. If it introduces a new data type, update `PinDataType` and `PIN_COLORS` in `src/types/nodes.ts`
 
 ## Workflow

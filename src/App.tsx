@@ -9,7 +9,7 @@
  * The sidebar is a flexbox sibling of the canvas area — it takes a fixed
  * width and the canvas fills the remaining space.
  */
-import { DnDProvider } from './hooks/useDnD';
+import { DnDProvider } from './hooks/DnDProvider';
 import { Sidebar } from './sidebar/Sidebar';
 import { BlueprintCanvas } from './components/BlueprintCanvas';
 import './App.css';

@@ -29,7 +29,7 @@
  *     on blur if the content isn't valid JSON.
  */
 import { useState } from 'react';
-import { type NodeProps, Position, useReactFlow, useStore } from '@xyflow/react';
+import { type NodeProps, Position } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS } from '../types';
 import { ExecutionPin } from '../pins/ExecutionPin';
@@ -37,13 +37,13 @@ import { DataPin } from '../pins/DataPin';
 import { PinLabel } from '../pins/PinLabel';
 import { NodeIcon } from '../components/NodeIcon';
 import { useExecutionStore } from '../store/executionStore';
+import { useNodeValueUpdater, useConnectedInputIds, autoResizeTextarea } from '../hooks/useNodeHelpers';
 import './RequestNode.css';
 
 /** Supported HTTP methods shown in the dropdown. */
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
 export function RequestNode({ id, data }: NodeProps) {
-  const { setNodes } = useReactFlow();
   const { label, values = {} } = data as BlueprintNodeData;
   const headerColor = CATEGORY_COLORS['function'];
   const activeNodeId = useExecutionStore((s) => s.activeNodeId);
@@ -53,35 +53,14 @@ export function RequestNode({ id, data }: NodeProps) {
   const [bodyValid, setBodyValid] = useState(true);
 
   /** Set of input pin IDs that have an incoming edge connected. */
-  const connectedInputIds = useStore((s) => {
-    const ids = new Set<string>();
-    for (const e of s.edges) {
-      if (e.target === id) ids.add(e.targetHandle!);
-    }
-    return ids;
-  });
+  const connectedInputIds = useConnectedInputIds(id);
 
   /** Update a value in this node's data.values map. */
-  const onValueChange = (pinId: string, value: string) => {
-    setNodes((nds) =>
-      nds.map((n) => {
-        if (n.id !== id) return n;
-        return {
-          ...n,
-          data: {
-            ...n.data,
-            values: { ...(n.data as BlueprintNodeData).values, [pinId]: value },
-          },
-        };
-      }),
-    );
-  };
+  const onValueChange = useNodeValueUpdater(id);
 
   /** Auto-resize a textarea to fit its content. */
   const onTextareaInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-    const el = e.currentTarget;
-    el.style.height = 'auto';
-    el.style.height = el.scrollHeight + 'px';
+    autoResizeTextarea(e.currentTarget);
   };
 
   return (

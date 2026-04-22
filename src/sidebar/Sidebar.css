@@ -199,7 +199,6 @@
 
 .sidebar__item-dot--event { background: #8b1a1a; }
 .sidebar__item-dot--function { background: #2d5baa; }
-.sidebar__item-dot--variable { background: #1a6b3c; }
 .sidebar__item-dot--math { background: #1a6b6b; }
 .sidebar__item-dot--branch,
 .sidebar__item-dot--loop { background: #555566; }

@@ -44,9 +44,11 @@ import '@xyflow/react/dist/style.css';
 import { nodeTypes } from '../nodes/nodeTypes';
 import { edgeTypes } from '../edges/edgeTypes';
 import { useFlowStore } from '../store/flowStore';
-import { useDnD } from '../hooks/useDnD';
+import { generateId, generateEdgeId } from '../utils/idUtils';
 import { createNodeFromType } from './nodeFactory';
 import { isConvertible } from '../utils/conversionUtils';
+import { CATEGORY_COLORS } from '../types';
+import type { NodeCategory } from '../types';
 import { Toolbar } from '../toolbar/Toolbar';
 import { OutputConsole } from './OutputConsole';
 import './BlueprintCanvas.css';
@@ -90,21 +92,9 @@ let clipboard: ClipboardData | null = null;
  */
 let lastMouseFlowPos: { x: number; y: number } | null = null;
 
-/** Generate a unique node ID. */
-function generateId(): string {
-  return `node-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
-/** Generate a unique edge ID. */
-function generateEdgeId(): string {
-  return `e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
 function CanvasInner() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition, setNodes } = useReactFlow();
-  const { draggedType, setDraggedType } = useDnD();
-
   // Read all state from the flow store
   const nodes = useFlowStore((s) => s.nodes);
   const edges = useFlowStore((s) => s.edges);
@@ -362,20 +352,8 @@ function CanvasInner() {
           <MiniMap
             position="bottom-left"
             nodeColor={(node) => {
-              const cat = (node.data as { category?: string })?.category;
-              switch (cat) {
-                case 'function': return '#2d5baa';
-                case 'event': return '#8b1a1a';
-                case 'variable': return '#1a6b3c';
-                case 'math': return '#1a6b6b';
-                case 'branch':
-                case 'loop': return '#555566';
-                case 'comment': return '#c8a832';
-                case 'pure': return '#3d3d5c';
-                case 'start': return '#1a8b3c';
-                case 'conversion': return '#2a4a6b';
-                default: return '#252540';
-              }
+              const cat = (node.data as { category?: string })?.category as NodeCategory | undefined;
+              return cat ? (CATEGORY_COLORS[cat] ?? '#252540') : '#252540';
             }}
             maskColor="rgba(0, 0, 0, 0.7)"
             pannable
