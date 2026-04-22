@@ -9,6 +9,7 @@ import { StartNode } from './StartNode';
 import { ConstantNode } from './ConstantNode';
 import { ArrayNode } from './ArrayNode';
 import { ConversionNode } from './ConversionNode';
+import { RequestNode } from './RequestNode';
 
 export const nodeTypes = {
   functionNode: FunctionNode,
@@ -22,4 +23,5 @@ export const nodeTypes = {
   constantNode: ConstantNode,
   arrayNode: ArrayNode,
   conversionNode: ConversionNode,
+  requestNode: RequestNode,
 };

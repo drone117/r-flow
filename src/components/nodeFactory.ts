@@ -57,6 +57,29 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
+  httpRequest: {
+    type: 'requestNode',
+    data: {
+      label: 'HTTP Request',
+      category: 'function',
+      inputs: [
+        { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
+        { id: 'url', label: 'URL', direction: 'target', dataType: 'string' },
+        { id: 'method', label: 'Method', direction: 'target', dataType: 'string' },
+        { id: 'params', label: 'Params', direction: 'target', dataType: 'json' },
+        { id: 'body', label: 'Body', direction: 'target', dataType: 'json' },
+      ],
+      outputs: [
+        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
+        { id: 'status', label: 'Status', direction: 'source', dataType: 'int' },
+        { id: 'json', label: 'JSON', direction: 'source', dataType: 'json' },
+        { id: 'text', label: 'Text', direction: 'source', dataType: 'string' },
+        { id: 'headers', label: 'Headers', direction: 'source', dataType: 'json' },
+        { id: 'ok', label: 'OK', direction: 'source', dataType: 'bool' },
+      ],
+      values: { url: '', method: 'GET', params: '{}', body: '{}' },
+    },
+  },
   mathAdd: {
     type: 'mathNode',
     data: {
@@ -335,6 +358,7 @@ export const sidebarCategories: SidebarCategory[] = [
     name: 'Functions',
     items: [
       { type: 'printString', label: 'Print String', category: 'function' },
+      { type: 'httpRequest', label: 'HTTP Request', category: 'function' },
     ],
   },
   {

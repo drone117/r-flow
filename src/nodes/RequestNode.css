@@ -1,0 +1,64 @@
+.blueprint-node--request {
+  min-width: 220px;
+  max-width: 300px;
+}
+
+.blueprint-node__pin-input--wide {
+  width: 140px;
+}
+
+.blueprint-node__request-textarea {
+  width: 140px;
+  min-height: 32px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.9);
+  resize: none;
+  line-height: 1.4;
+}
+
+.blueprint-node__request-textarea--error {
+  border-color: #cc3333;
+}
+
+.blueprint-node__request-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.blueprint-node__output-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 2px;
+  margin-top: 2px;
+}
+
+.blueprint-node__collapse-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 9px;
+  padding: 1px 6px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.blueprint-node__collapse-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.blueprint-node__collapsed-section {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.2s ease, opacity 0.2s ease;
+}
+
+.blueprint-node__collapsed-section.expanded {
+  max-height: 100px;
+  opacity: 1;
+}

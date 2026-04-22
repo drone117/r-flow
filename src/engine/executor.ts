@@ -11,6 +11,7 @@ interface ExecCtx {
   delay: number;
   loopIndex: Map<string, number>;
   loopValue: Map<string, string>;
+  requestResults: Map<string, { status: number; headers: string; json: string; text: string; ok: boolean }>;
 }
 
 function wait(ms: number) {
@@ -103,6 +104,19 @@ function resolveOutputValue(
     return JSON.stringify(items.map((i) => i.value));
   }
 
+  if (node.type === 'requestNode') {
+    const result = ctx.requestResults.get(nodeId);
+    if (!result) return '';
+    switch (handleId) {
+      case 'status': return String(result.status);
+      case 'json': return result.json;
+      case 'text': return result.text;
+      case 'headers': return result.headers;
+      case 'ok': return result.ok ? 'true' : 'false';
+      default: return '';
+    }
+  }
+
   return data.values?.[handleId] ?? '';
 }
 
@@ -130,6 +144,52 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
       if (data.label === 'Delay') {
         const duration = parseFloat(resolveInputValue(ctx, nodeId, 'duration')) || 0;
         await wait(duration * 1000);
+      }
+      if (data.label === 'HTTP Request') {
+        const url = resolveInputValue(ctx, nodeId, 'url');
+        const method = resolveInputValue(ctx, nodeId, 'method') || 'GET';
+        let paramsObj: Record<string, string> = {};
+        try { paramsObj = JSON.parse(resolveInputValue(ctx, nodeId, 'params') || '{}'); } catch { /* ignore */ }
+        const queryString = new URLSearchParams(paramsObj).toString();
+        const fullUrl = queryString ? `${url}?${queryString}` : url;
+
+        let fetchBody: string | undefined;
+        if (method !== 'GET' && method !== 'HEAD') {
+          const rawBody = resolveInputValue(ctx, nodeId, 'body');
+          if (rawBody) fetchBody = rawBody;
+        }
+
+        try {
+          ctx.emit(`  → ${method} ${fullUrl}`);
+          const response = await fetch(fullUrl, {
+            method,
+            body: fetchBody,
+            headers: fetchBody ? { 'Content-Type': 'application/json' } : undefined,
+          });
+          const text = await response.text();
+          let jsonStr = '';
+          try { const parsed = JSON.parse(text); jsonStr = JSON.stringify(parsed); } catch { /* not JSON */ }
+          const headersObj: Record<string, string> = {};
+          response.headers.forEach((v, k) => { headersObj[k] = v; });
+
+          ctx.requestResults.set(nodeId, {
+            status: response.status,
+            headers: JSON.stringify(headersObj),
+            json: jsonStr,
+            text,
+            ok: response.ok,
+          });
+          ctx.emit(`  ← ${response.status} ${response.statusText}`);
+        } catch (err) {
+          ctx.requestResults.set(nodeId, {
+            status: 0,
+            headers: '{}',
+            json: '',
+            text: '',
+            ok: false,
+          });
+          ctx.emit(`  ✗ Request failed: ${err}`);
+        }
       }
       const next = followExec(ctx, nodeId, 'exec-out');
       if (next.edgeId) ctx.onEdgeActive(next.edgeId);
@@ -207,7 +267,7 @@ export async function executeGraph(
   onEdgeActive: (edgeId: string) => void,
   stepDelay = 300,
 ) {
-  const ctx: ExecCtx = { nodes, edges, emit: onOutput, onNodeActive, onEdgeActive, delay: stepDelay, loopIndex: new Map(), loopValue: new Map() };
+  const ctx: ExecCtx = { nodes, edges, emit: onOutput, onNodeActive, onEdgeActive, delay: stepDelay, loopIndex: new Map(), loopValue: new Map(), requestResults: new Map() };
 
   const startNodes = nodes.filter(
     (n) => n.type === 'startNode',
