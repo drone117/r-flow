@@ -44,6 +44,12 @@ function resolveOutputValue(
     return data.values?.[handleId] ?? data.values?.['value'] ?? '';
   }
 
+  if (data.category === 'pure' && data.label === 'Format Text') {
+    const format = resolveInputValue(ctx, nodeId, 'format');
+    const arg1 = resolveInputValue(ctx, nodeId, 'arg1');
+    return format.replace(/\{0\}/g, arg1);
+  }
+
   if (data.category === 'conversion') {
     const sourceType = data.sourceType as PinDataType;
     const targetType = data.targetType as PinDataType;
@@ -102,6 +108,10 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
       if (data.label === 'Print String') {
         const value = resolveInputValue(ctx, nodeId, 'string-in');
         ctx.emit(value || '(empty string)');
+      }
+      if (data.label === 'Delay') {
+        const duration = parseFloat(resolveInputValue(ctx, nodeId, 'duration')) || 0;
+        await wait(duration * 1000);
       }
       const next = followExec(ctx, nodeId, 'exec-out');
       if (next.edgeId) ctx.onEdgeActive(next.edgeId);

@@ -29,37 +29,6 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
-  eventBeginPlay: {
-    type: 'eventNode',
-    data: {
-      label: 'Event BeginPlay',
-      category: 'event',
-      outputs: [
-        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
-      ],
-    },
-  },
-  eventTick: {
-    type: 'eventNode',
-    data: {
-      label: 'Event Tick',
-      category: 'event',
-      outputs: [
-        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
-        { id: 'delta-seconds', label: 'Delta Seconds', direction: 'source', dataType: 'float' },
-      ],
-    },
-  },
-  customEvent: {
-    type: 'eventNode',
-    data: {
-      label: 'Custom Event',
-      category: 'event',
-      outputs: [
-        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
-      ],
-    },
-  },
   printString: {
     type: 'functionNode',
     data: {
@@ -85,47 +54,6 @@ const templates: Record<string, NodeTemplate> = {
       ],
       outputs: [
         { id: 'exec-out', label: 'Completed', direction: 'source', dataType: 'execution' },
-      ],
-    },
-  },
-  setTimer: {
-    type: 'functionNode',
-    data: {
-      label: 'Set Timer by Event',
-      category: 'function',
-      inputs: [
-        { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
-        { id: 'time', label: 'Time', direction: 'target', dataType: 'float' },
-        { id: 'looping', label: 'Looping', direction: 'target', dataType: 'bool' },
-      ],
-      outputs: [
-        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
-        { id: 'return-value', label: 'Return Value', direction: 'source', dataType: 'object' },
-      ],
-    },
-  },
-  getVariable: {
-    type: 'variableNode',
-    data: {
-      label: 'Get Variable',
-      category: 'variable',
-      outputs: [
-        { id: 'value-out', label: 'Value', direction: 'source', dataType: 'wildcard' },
-      ],
-    },
-  },
-  setVariable: {
-    type: 'variableNode',
-    data: {
-      label: 'Set Variable',
-      category: 'variable',
-      inputs: [
-        { id: 'exec-in', label: '', direction: 'target', dataType: 'execution' },
-        { id: 'value-in', label: 'Value', direction: 'target', dataType: 'wildcard' },
-      ],
-      outputs: [
-        { id: 'exec-out', label: '', direction: 'source', dataType: 'execution' },
-        { id: 'value-out', label: 'Value', direction: 'source', dataType: 'wildcard' },
       ],
     },
   },
@@ -365,36 +293,6 @@ const templates: Record<string, NodeTemplate> = {
       items: [{ id: 'item-0', value: 'false' }],
     },
   },
-  mapStringString: {
-    type: 'mapNode',
-    data: {
-      label: 'Map (String → String)',
-      category: 'pure',
-      keyType: 'string',
-      valueType: 'string',
-      entries: [{ id: 'entry-0', key: '', value: '' }],
-    },
-  },
-  mapStringInt: {
-    type: 'mapNode',
-    data: {
-      label: 'Map (String → Int)',
-      category: 'pure',
-      keyType: 'string',
-      valueType: 'int',
-      entries: [{ id: 'entry-0', key: '', value: '0' }],
-    },
-  },
-  mapStringFloat: {
-    type: 'mapNode',
-    data: {
-      label: 'Map (String → Float)',
-      category: 'pure',
-      keyType: 'string',
-      valueType: 'float',
-      entries: [{ id: 'entry-0', key: '', value: '0.0' }],
-    },
-  },
 };
 
 export function createNodeFromType(type: string, position: XYPosition): Node {
@@ -440,13 +338,6 @@ export const sidebarCategories: SidebarCategory[] = [
     ],
   },
   {
-    name: 'Variables',
-    items: [
-      { type: 'getVariable', label: 'Get Variable', category: 'variable' },
-      { type: 'setVariable', label: 'Set Variable', category: 'variable' },
-    ],
-  },
-  {
     name: 'Constants',
     items: [
       { type: 'constString', label: 'String', category: 'pure' },
@@ -463,14 +354,6 @@ export const sidebarCategories: SidebarCategory[] = [
       { type: 'arrayFloat', label: 'Float Array', category: 'pure' },
       { type: 'arrayInt', label: 'Int Array', category: 'pure' },
       { type: 'arrayBool', label: 'Bool Array', category: 'pure' },
-    ],
-  },
-  {
-    name: 'Maps',
-    items: [
-      { type: 'mapStringString', label: 'Map (String → String)', category: 'pure' },
-      { type: 'mapStringInt', label: 'Map (String → Int)', category: 'pure' },
-      { type: 'mapStringFloat', label: 'Map (String → Float)', category: 'pure' },
     ],
   },
   {
