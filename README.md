@@ -101,6 +101,8 @@ server/
 |----------|--------|
 | `Ctrl+Z` | Undo |
 | `Ctrl+Shift+Z` / `Ctrl+Y` | Redo |
+| `Ctrl+C` | Copy selected nodes (and internal edges) |
+| `Ctrl+V` | Paste nodes at cursor position |
 | `Delete` / `Backspace` | Delete selected nodes/edges |
 | `Shift+Click` | Multi-select |
 | `Alt+Click` on edge | Delete edge |

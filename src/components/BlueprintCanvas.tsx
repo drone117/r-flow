@@ -21,7 +21,10 @@
  *     before allowing a wire to be drawn. Special case: blocks string→Multiply
  *     connections (Multiply only works with numeric types)
  *   - **Keyboard shortcuts**: Ctrl+Z = undo, Ctrl+Shift+Z or Ctrl+Y = redo,
- *     Ctrl+C = copy, Ctrl+V = paste
+ *     Ctrl+C = copy, Ctrl+V = paste at cursor position
+ *   - **Copy/paste**: Copies selected nodes and their internal edges
+ *     (edges where both endpoints are in the selection). Paste places
+ *     the copied nodes centered on the current mouse cursor position.
  *   - **Snap to grid**: 20px grid, toggleable from the toolbar
  *   - **Minimap**: positioned bottom-left, color-coded by node category
  */
@@ -50,8 +53,25 @@ import './BlueprintCanvas.css';
 
 /**
  * Module-level clipboard for copy/paste.
- * Stores the deep-cloned nodes and internal edges from the last copy operation,
- * plus the top-left corner of the original selection for offset calculation.
+ *
+ * Kept outside the component so it persists across re-renders and doesn't
+ * cause unnecessary state updates. This is the same pattern used by most
+ * visual editors — the clipboard is a simple global variable.
+ *
+ * On copy (Ctrl+C):
+ *   - Deep-clones all selected nodes via structuredClone
+ *   - Collects "internal" edges — edges where BOTH source and target nodes
+ *     are in the selection. Edges that connect to nodes outside the selection
+ *     are intentionally dropped (they wouldn't make sense on the copy).
+ *   - Records the top-left corner of the selection bounding box in `origin`.
+ *     This is used to calculate relative positions when pasting.
+ *
+ * On paste (Ctrl+V):
+ *   - Generates new unique IDs for every copied node and edge
+ *   - Repositions nodes so that the selection's top-left corner aligns
+ *     with the last known mouse cursor position (paste-at-cursor)
+ *   - Remaps edge source/target IDs to point to the new node copies
+ *   - Marks pasted nodes as selected, deselects everything else
  */
 interface ClipboardData {
   nodes: Node[];
@@ -59,6 +79,16 @@ interface ClipboardData {
   origin: { x: number; y: number }; // top-left corner of original selection
 }
 let clipboard: ClipboardData | null = null;
+
+/**
+ * Last known mouse position in flow (canvas) coordinates.
+ *
+ * Updated on every mousemove event via a window listener. Used as the
+ * paste anchor — when the user presses Ctrl+V, the copied nodes are
+ * placed so their bounding box origin aligns with this position.
+ * Falls back to (0, 0) if the mouse hasn't moved yet.
+ */
+let lastMouseFlowPos: { x: number; y: number } | null = null;
 
 /** Generate a unique node ID. */
 function generateId(): string {
@@ -88,13 +118,38 @@ function CanvasInner() {
   const undo = useFlowStore((s) => s.undo);
   const redo = useFlowStore((s) => s.redo);
 
-  // Track currently selected node IDs (ref to avoid re-renders on selection change)
+  /**
+   * Track which nodes are currently selected.
+   *
+   * Uses a ref (not state) to avoid re-renders on every selection change.
+   * The ref is only read when Ctrl+C is pressed, so we don't need React
+   * to re-render the canvas just because the selection changed.
+   *
+   * `useOnSelectionChange` from @xyflow/react fires whenever the user
+   * selects or deselects nodes (click, Shift+click, drag-select, etc.).
+   */
   const selectedIdsRef = useRef<Set<string>>(new Set());
   useOnSelectionChange({
     onChange: ({ nodes: selectedNodes }) => {
       selectedIdsRef.current = new Set(selectedNodes.map((n) => n.id));
     },
   });
+
+  /**
+   * Track mouse position in flow (canvas) coordinates.
+   *
+   Converts screen pixel coordinates to canvas coordinates using
+   * `screenToFlowPosition`, which accounts for pan and zoom.
+   * This position is used as the paste anchor — when the user presses
+   * Ctrl+V, nodes are placed at the cursor location.
+   */
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      lastMouseFlowPos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    return () => window.removeEventListener('mousemove', onMouseMove);
+  }, [screenToFlowPosition]);
 
   // Allow dropping nodes from the sidebar onto the canvas
   const onDragOver = useCallback((event: DragEvent) => {
@@ -145,6 +200,9 @@ function CanvasInner() {
       }
 
       // --- Copy (Ctrl+C) ---
+      // Deep-clones selected nodes and their internal edges into the module-level
+      // clipboard. Only edges with both endpoints in the selection are copied;
+      // edges connecting to external nodes are dropped.
       if (e.key === 'c') {
         e.preventDefault();
         const selectedIds = selectedIdsRef.current;
@@ -171,6 +229,10 @@ function CanvasInner() {
       }
 
       // --- Paste (Ctrl+V) ---
+      // Generates new IDs for all copied nodes and edges, repositions nodes
+      // so the selection's top-left corner aligns with the cursor position,
+      // remaps edge references, deselects existing nodes, and inserts
+      // everything into the store in a single undo snapshot.
       if (e.key === 'v') {
         e.preventDefault();
         if (!clipboard) return;
@@ -181,14 +243,16 @@ function CanvasInner() {
           idMap.set(node.id, generateId());
         }
 
-        // Clone nodes with new IDs, offset positions, mark as selected
-        const PASTE_OFFSET = 20;
+        // Use the last known mouse position as the paste anchor
+        const anchor = lastMouseFlowPos ?? { x: 0, y: 0 };
+
+        // Clone nodes with new IDs, reposition relative to cursor
         const newNodes: Node[] = clipboard.nodes.map((n) => ({
           ...structuredClone(n),
           id: idMap.get(n.id)!,
           position: {
-            x: n.position.x - clipboard.origin.x + PASTE_OFFSET,
-            y: n.position.y - clipboard.origin.y + PASTE_OFFSET,
+            x: n.position.x - clipboard.origin.x + anchor.x,
+            y: n.position.y - clipboard.origin.y + anchor.y,
           },
           selected: true,
         }));
@@ -205,15 +269,6 @@ function CanvasInner() {
         setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
 
         pasteNodes(newNodes, newEdges);
-
-        // Update clipboard origin so repeated pastes stack diagonally
-        clipboard = {
-          ...clipboard,
-          origin: {
-            x: clipboard.origin.x - PASTE_OFFSET,
-            y: clipboard.origin.y - PASTE_OFFSET,
-          },
-        };
         return;
       }
     };

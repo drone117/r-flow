@@ -313,7 +313,13 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     });
   },
 
-  /** Add multiple nodes and edges in a single operation (used by paste). */
+  /**
+   * Add multiple nodes and edges in a single operation.
+   *
+   * Used by the paste handler (Ctrl+V) to insert all copied nodes and their
+   * internal edges at once. Saves a single undo snapshot for the entire
+   * paste — undoing removes all pasted nodes/edges in one step.
+   */
   pasteNodes: (newNodes, newEdges) => {
     const { past, future } = saveSnapshot(get());
     set({

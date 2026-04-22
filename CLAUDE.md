@@ -21,7 +21,7 @@ No test framework is configured.
 ### State Management (Zustand)
 
 Three stores in `src/store/`:
-- **`flowStore.ts`** — Nodes, edges, undo/redo (50-step history), snap-to-grid, minimap toggle, drag-and-drop node creation, auto-insertion of conversion nodes on type-mismatched connections
+- **`flowStore.ts`** — Nodes, edges, undo/redo (50-step history), snap-to-grid, minimap toggle, drag-and-drop node creation, auto-insertion of conversion nodes on type-mismatched connections, copy/paste (Ctrl+C/V with paste-at-cursor)
 - **`executionStore.ts`** — Active node/edge during execution, running/stopped state
 - **`outputStore.ts`** — Output console messages
 
