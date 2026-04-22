@@ -120,16 +120,29 @@ function resolveOutputValue(
   return data.values?.[handleId] ?? '';
 }
 
-function followExec(ctx: ExecCtx, nodeId: string, handleId: string): { targetId: string | null; edgeId: string | null } {
-  const edge = ctx.edges.find(
-    (e) => e.source === nodeId && e.sourceHandle === handleId,
-  );
-  return { targetId: edge?.target ?? null, edgeId: edge?.id ?? null };
+function followExecAll(ctx: ExecCtx, nodeId: string, handleId: string): { targetId: string; edgeId: string }[] {
+  return ctx.edges
+    .filter((e) => e.source === nodeId && e.sourceHandle === handleId)
+    .map((e) => ({ targetId: e.target, edgeId: e.id }));
 }
 
-async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null> {
+async function executeNode(
+  ctx: ExecCtx,
+  nodeId: string,
+  ancestors: Set<string>,
+  steps: { count: number },
+): Promise<void> {
+  if (!nodeId || steps.count >= 1000) return;
+  if (ancestors.has(nodeId)) {
+    ctx.emit('  ⚠ Infinite loop detected — stopping.');
+    return;
+  }
+
+  ancestors.add(nodeId);
+  steps.count++;
+
   const node = ctx.nodes.find((n) => n.id === nodeId);
-  if (!node) return null;
+  if (!node) return;
   const data = node.data as BlueprintNodeData;
 
   ctx.onNodeActive(nodeId);
@@ -187,17 +200,21 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
           ctx.emit(`  ✗ Request failed: ${err instanceof TypeError ? 'CORS — the server does not allow cross-origin requests from the browser' : err}`);
         }
       }
-      const next = followExec(ctx, nodeId, 'exec-out');
-      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
-      return next.targetId;
+      for (const t of followExecAll(ctx, nodeId, 'exec-out')) {
+        if (t.edgeId) ctx.onEdgeActive(t.edgeId);
+        await executeNode(ctx, t.targetId, new Set(ancestors), steps);
+      }
+      break;
     }
 
     case 'branch': {
       const condition = resolveInputValue(ctx, nodeId, 'condition');
       const isTrue = condition !== '' && condition !== 'false' && condition !== '0';
-      const next = followExec(ctx, nodeId, isTrue ? 'true' : 'false');
-      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
-      return next.targetId;
+      for (const t of followExecAll(ctx, nodeId, isTrue ? 'true' : 'false')) {
+        if (t.edgeId) ctx.onEdgeActive(t.edgeId);
+        await executeNode(ctx, t.targetId, new Set(ancestors), steps);
+      }
+      break;
     }
 
     case 'loop': {
@@ -208,13 +225,9 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
         for (let i = 0; i < elements.length; i++) {
           ctx.loopIndex.set(nodeId, i);
           ctx.loopValue.set(nodeId, elements[i]);
-          const bodyNext = followExec(ctx, nodeId, 'body');
-          if (bodyNext.targetId) {
-            if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
-            let bodyId = bodyNext.targetId;
-            while (bodyId) {
-              bodyId = await processNode(ctx, bodyId);
-            }
+          for (const t of followExecAll(ctx, nodeId, 'body')) {
+            if (t.edgeId) ctx.onEdgeActive(t.edgeId);
+            await executeNode(ctx, t.targetId, new Set(ancestors), steps);
           }
         }
         ctx.loopIndex.delete(nodeId);
@@ -224,33 +237,28 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
         const last = parseInt(resolveInputValue(ctx, nodeId, 'last-index'), 10) || 0;
         for (let i = first; i <= last; i++) {
           ctx.loopIndex.set(nodeId, i);
-          const bodyNext = followExec(ctx, nodeId, 'body');
-          if (bodyNext.targetId) {
-            if (bodyNext.edgeId) ctx.onEdgeActive(bodyNext.edgeId);
-            let bodyId = bodyNext.targetId;
-            while (bodyId) {
-              bodyId = await processNode(ctx, bodyId);
-            }
+          for (const t of followExecAll(ctx, nodeId, 'body')) {
+            if (t.edgeId) ctx.onEdgeActive(t.edgeId);
+            await executeNode(ctx, t.targetId, new Set(ancestors), steps);
           }
         }
         ctx.loopIndex.delete(nodeId);
       }
-      const completed = followExec(ctx, nodeId, 'completed');
-      if (completed.edgeId) ctx.onEdgeActive(completed.edgeId);
-      return completed.targetId;
+      for (const t of followExecAll(ctx, nodeId, 'completed')) {
+        if (t.edgeId) ctx.onEdgeActive(t.edgeId);
+        await executeNode(ctx, t.targetId, new Set(ancestors), steps);
+      }
+      break;
     }
 
     case 'event':
-    case 'start': {
-      const next = followExec(ctx, nodeId, 'exec-out');
-      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
-      return next.targetId;
-    }
-
+    case 'start':
     default: {
-      const next = followExec(ctx, nodeId, 'exec-out');
-      if (next.edgeId) ctx.onEdgeActive(next.edgeId);
-      return next.targetId;
+      for (const t of followExecAll(ctx, nodeId, 'exec-out')) {
+        if (t.edgeId) ctx.onEdgeActive(t.edgeId);
+        await executeNode(ctx, t.targetId, new Set(ancestors), steps);
+      }
+      break;
     }
   }
 }
@@ -278,22 +286,10 @@ export async function executeGraph(
     const label = (startNode.data as BlueprintNodeData).label;
     onOutput(`▶ Executing from "${label}"`);
 
-    let currentId: string | null = startNode.id;
-    const visited = new Set<string>();
-    let steps = 0;
-    const maxSteps = 1000;
+    const steps = { count: 0 };
+    await executeNode(ctx, startNode.id, new Set(), steps);
 
-    while (currentId && steps < maxSteps) {
-      if (visited.has(currentId)) {
-        onOutput('  ⚠ Infinite loop detected — stopping.');
-        break;
-      }
-      visited.add(currentId);
-      steps++;
-      currentId = await processNode(ctx, currentId);
-    }
-
-    if (steps >= maxSteps) {
+    if (steps.count >= 1000) {
       onOutput('  ⚠ Max execution steps reached — stopping.');
     }
   }
