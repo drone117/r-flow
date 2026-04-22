@@ -188,7 +188,7 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
             text: '',
             ok: false,
           });
-          ctx.emit(`  ✗ Request failed: ${err}`);
+          ctx.emit(`  ✗ Request failed: ${err instanceof TypeError ? 'CORS — the server does not allow cross-origin requests from the browser' : err}`);
         }
       }
       const next = followExec(ctx, nodeId, 'exec-out');
