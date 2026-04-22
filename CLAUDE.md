@@ -8,13 +8,11 @@ R-Flow is a visual blueprint/node-based programming editor built with React and 
 
 ## Commands
 
-- `go run server/main.go` — Start Go backend proxy (port 8080, required for HTTP Request node)
-- `npm run dev` — Start Vite dev server (port 5173, proxies `/api` to Go backend)
+- `npm run dev` — Start Vite dev server (port 5173, includes built-in `/api/request` proxy)
 - `npm run build` — Type-check (tsc) then build for production
 - `npm run lint` — Run ESLint
 - `npm run preview` — Preview production build
-
-**Dev workflow:** Run both `go run server/main.go` and `npm run dev`. The Vite dev server proxies `/api/*` requests to the Go backend.
+- `go run server/main.go` — Start standalone Go backend (port 8080, for production use)
 
 No test framework is configured.
 
@@ -51,7 +49,11 @@ When a user connects two pins of different but compatible data types, `flowStore
 
 ### Go Backend Proxy
 
-`server/main.go` — Single-file Go server that proxies HTTP requests to avoid browser CORS restrictions. The frontend sends request details to `POST /api/request`, the Go server makes the actual request and returns the response. Serves static files from `./dist` for production use.
+`server/main.go` — Standalone Go server for production use. Proxies HTTP requests via `POST /api/request` and serves static files from `./dist`.
+
+### Vite Request Proxy Plugin
+
+`vite.config.ts` — A Vite plugin (`requestProxy()`) that adds the same `/api/request` endpoint to the dev server via `configureServer`. This eliminates the need for a separate Go process during development.
 
 ### Adding a New Node Type
 
