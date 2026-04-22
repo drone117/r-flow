@@ -41,8 +41,6 @@ function resolveInputType(ctx: ExecCtx, nodeId: string, handleId: string): PinDa
   return 'wildcard';
 }
 
-const NUMERIC_TYPES: Set<string> = new Set(['float', 'int']);
-
 function resolveOutputValue(
   ctx: ExecCtx,
   nodeId: string,
@@ -85,25 +83,19 @@ function resolveOutputValue(
     const aType = resolveInputType(ctx, nodeId, aPin);
     const bType = resolveInputType(ctx, nodeId, bPin);
 
-    if (data.label.includes('Clamp')) {
-      if (NUMERIC_TYPES.has(aType) && NUMERIC_TYPES.has(bType)) {
-        return String(Math.max(parseFloat(bVal) || 0, parseFloat(aVal) || 0));
-      }
-      return '';
+    if (data.label === 'Clamp') {
+      return String(Math.max(parseFloat(bVal) || 0, parseFloat(aVal) || 0));
     }
 
-    if (data.label.includes('*')) {
+    if (data.label === 'Multiply') {
       return String((parseFloat(aVal) || 0) * (parseFloat(bVal) || 0));
     }
 
-    // Add
+    // Add: concatenate if either input is string, otherwise numeric
     if (aType === 'string' || bType === 'string') {
       return aVal + bVal;
     }
-    if (NUMERIC_TYPES.has(aType) && NUMERIC_TYPES.has(bType)) {
-      return String((parseFloat(aVal) || 0) + (parseFloat(bVal) || 0));
-    }
-    return '';
+    return String((parseFloat(aVal) || 0) + (parseFloat(bVal) || 0));
   }
 
   if (node.type === 'arrayNode' && 'items' in data) {
