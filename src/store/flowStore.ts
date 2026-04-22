@@ -52,6 +52,8 @@ interface FlowState {
 
   // --- Actions ---
   addNode: (node: Node) => void;
+  /** Add multiple nodes and edges at once (used by paste). Saves one undo snapshot. */
+  pasteNodes: (newNodes: Node[], newEdges: Edge[]) => void;
   loadBlueprint: (nodes: Node[], edges: Edge[]) => void;
   toggleSnap: () => void;
   toggleMinimap: () => void;
@@ -306,6 +308,17 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     const { past, future } = saveSnapshot(get());
     set({
       nodes: [...get().nodes, node],
+      past,
+      future,
+    });
+  },
+
+  /** Add multiple nodes and edges in a single operation (used by paste). */
+  pasteNodes: (newNodes, newEdges) => {
+    const { past, future } = saveSnapshot(get());
+    set({
+      nodes: [...get().nodes, ...newNodes],
+      edges: [...get().edges, ...newEdges],
       past,
       future,
     });

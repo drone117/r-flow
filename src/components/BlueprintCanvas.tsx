@@ -20,7 +20,8 @@
  *   - **Connection validation**: `isValidConnection` checks type compatibility
  *     before allowing a wire to be drawn. Special case: blocks string→Multiply
  *     connections (Multiply only works with numeric types)
- *   - **Keyboard shortcuts**: Ctrl+Z = undo, Ctrl+Shift+Z or Ctrl+Y = redo
+ *   - **Keyboard shortcuts**: Ctrl+Z = undo, Ctrl+Shift+Z or Ctrl+Y = redo,
+ *     Ctrl+C = copy, Ctrl+V = paste
  *   - **Snap to grid**: 20px grid, toggleable from the toolbar
  *   - **Minimap**: positioned bottom-left, color-coded by node category
  */
@@ -32,8 +33,9 @@ import {
   MiniMap,
   ReactFlowProvider,
   useReactFlow,
-  type ReactFlowInstance,
+  useOnSelectionChange,
 } from '@xyflow/react';
+import type { Node, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import { nodeTypes } from '../nodes/nodeTypes';
@@ -46,9 +48,31 @@ import { Toolbar } from '../toolbar/Toolbar';
 import { OutputConsole } from './OutputConsole';
 import './BlueprintCanvas.css';
 
+/**
+ * Module-level clipboard for copy/paste.
+ * Stores the deep-cloned nodes and internal edges from the last copy operation,
+ * plus the top-left corner of the original selection for offset calculation.
+ */
+interface ClipboardData {
+  nodes: Node[];
+  edges: Edge[];
+  origin: { x: number; y: number }; // top-left corner of original selection
+}
+let clipboard: ClipboardData | null = null;
+
+/** Generate a unique node ID. */
+function generateId(): string {
+  return `node-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/** Generate a unique edge ID. */
+function generateEdgeId(): string {
+  return `e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 function CanvasInner() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setNodes } = useReactFlow();
   const { draggedType, setDraggedType } = useDnD();
 
   // Read all state from the flow store
@@ -58,10 +82,19 @@ function CanvasInner() {
   const onEdgesChange = useFlowStore((s) => s.onEdgesChange);
   const onConnect = useFlowStore((s) => s.onConnect);
   const addNode = useFlowStore((s) => s.addNode);
+  const pasteNodes = useFlowStore((s) => s.pasteNodes);
   const snapEnabled = useFlowStore((s) => s.snapEnabled);
   const minimapEnabled = useFlowStore((s) => s.minimapEnabled);
   const undo = useFlowStore((s) => s.undo);
   const redo = useFlowStore((s) => s.redo);
+
+  // Track currently selected node IDs (ref to avoid re-renders on selection change)
+  const selectedIdsRef = useRef<Set<string>>(new Set());
+  useOnSelectionChange({
+    onChange: ({ nodes: selectedNodes }) => {
+      selectedIdsRef.current = new Set(selectedNodes.map((n) => n.id));
+    },
+  });
 
   // Allow dropping nodes from the sidebar onto the canvas
   const onDragOver = useCallback((event: DragEvent) => {
@@ -87,25 +120,106 @@ function CanvasInner() {
     [screenToFlowPosition, addNode],
   );
 
-  // Global keyboard shortcuts for undo/redo
+  // Global keyboard shortcuts: undo, redo, copy, paste
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+
+      // --- Undo ---
+      if (e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         undo();
+        return;
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
+      // --- Redo ---
+      if (e.key === 'z' && e.shiftKey) {
         e.preventDefault();
         redo();
+        return;
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
+      if (e.key === 'y') {
         e.preventDefault();
         redo();
+        return;
+      }
+
+      // --- Copy (Ctrl+C) ---
+      if (e.key === 'c') {
+        e.preventDefault();
+        const selectedIds = selectedIdsRef.current;
+        if (selectedIds.size === 0) return;
+
+        const selectedNodes = nodes.filter((n) => selectedIds.has(n.id));
+        if (selectedNodes.length === 0) return;
+
+        // Deep-clone selected nodes
+        const clonedNodes: Node[] = selectedNodes.map((n) => structuredClone(n));
+
+        // Find the top-left corner of the selection for offset calculation
+        const minX = Math.min(...clonedNodes.map((n) => n.position.x));
+        const minY = Math.min(...clonedNodes.map((n) => n.position.y));
+
+        // Collect internal edges (both endpoints in the selection)
+        const selectedNodeIds = new Set(selectedNodes.map((n) => n.id));
+        const clonedEdges: Edge[] = edges
+          .filter((e) => selectedNodeIds.has(e.source) && selectedNodeIds.has(e.target))
+          .map((e) => structuredClone(e));
+
+        clipboard = { nodes: clonedNodes, edges: clonedEdges, origin: { x: minX, y: minY } };
+        return;
+      }
+
+      // --- Paste (Ctrl+V) ---
+      if (e.key === 'v') {
+        e.preventDefault();
+        if (!clipboard) return;
+
+        // Build old→new ID mapping
+        const idMap = new Map<string, string>();
+        for (const node of clipboard.nodes) {
+          idMap.set(node.id, generateId());
+        }
+
+        // Clone nodes with new IDs, offset positions, mark as selected
+        const PASTE_OFFSET = 20;
+        const newNodes: Node[] = clipboard.nodes.map((n) => ({
+          ...structuredClone(n),
+          id: idMap.get(n.id)!,
+          position: {
+            x: n.position.x - clipboard.origin.x + PASTE_OFFSET,
+            y: n.position.y - clipboard.origin.y + PASTE_OFFSET,
+          },
+          selected: true,
+        }));
+
+        // Clone edges with remapped source/target IDs
+        const newEdges: Edge[] = clipboard.edges.map((e) => ({
+          ...structuredClone(e),
+          id: generateEdgeId(),
+          source: idMap.get(e.source)!,
+          target: idMap.get(e.target)!,
+        }));
+
+        // Deselect all existing nodes, then paste
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
+
+        pasteNodes(newNodes, newEdges);
+
+        // Update clipboard origin so repeated pastes stack diagonally
+        clipboard = {
+          ...clipboard,
+          origin: {
+            x: clipboard.origin.x - PASTE_OFFSET,
+            y: clipboard.origin.y - PASTE_OFFSET,
+          },
+        };
+        return;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, nodes, edges, pasteNodes, setNodes]);
 
   return (
     <div ref={reactFlowWrapper} className="blueprint-canvas">
