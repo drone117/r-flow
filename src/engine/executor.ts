@@ -150,8 +150,6 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
         const method = resolveInputValue(ctx, nodeId, 'method') || 'GET';
         let paramsObj: Record<string, string> = {};
         try { paramsObj = JSON.parse(resolveInputValue(ctx, nodeId, 'params') || '{}'); } catch { /* ignore */ }
-        const queryString = new URLSearchParams(paramsObj).toString();
-        const fullUrl = queryString ? `${url}?${queryString}` : url;
 
         let fetchBody: string | undefined;
         if (method !== 'GET' && method !== 'HEAD') {
@@ -160,26 +158,24 @@ async function processNode(ctx: ExecCtx, nodeId: string): Promise<string | null>
         }
 
         try {
-          ctx.emit(`  → ${method} ${fullUrl}`);
-          const response = await fetch(fullUrl, {
-            method,
-            body: fetchBody,
-            headers: fetchBody ? { 'Content-Type': 'application/json' } : undefined,
+          ctx.emit(`  → ${method} ${url}`);
+          const response = await fetch('/api/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, method, params: paramsObj, body: fetchBody }),
           });
-          const text = await response.text();
+          const result = await response.json() as { status: number; headers: Record<string, string>; body: string; ok: boolean };
           let jsonStr = '';
-          try { const parsed = JSON.parse(text); jsonStr = JSON.stringify(parsed); } catch { /* not JSON */ }
-          const headersObj: Record<string, string> = {};
-          response.headers.forEach((v, k) => { headersObj[k] = v; });
+          try { const parsed = JSON.parse(result.body); jsonStr = JSON.stringify(parsed); } catch { /* not JSON */ }
 
           ctx.requestResults.set(nodeId, {
-            status: response.status,
-            headers: JSON.stringify(headersObj),
+            status: result.status,
+            headers: JSON.stringify(result.headers),
             json: jsonStr,
-            text,
-            ok: response.ok,
+            text: result.body,
+            ok: result.ok,
           });
-          ctx.emit(`  ← ${response.status} ${response.statusText}`);
+          ctx.emit(`  ← ${result.status}`);
         } catch (err) {
           ctx.requestResults.set(nodeId, {
             status: 0,

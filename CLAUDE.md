@@ -8,10 +8,13 @@ R-Flow is a visual blueprint/node-based programming editor built with React and 
 
 ## Commands
 
-- `npm run dev` — Start Vite dev server (default port 5173, accessible at http://localhost:5173)
+- `go run server/main.go` — Start Go backend proxy (port 8080, required for HTTP Request node)
+- `npm run dev` — Start Vite dev server (port 5173, proxies `/api` to Go backend)
 - `npm run build` — Type-check (tsc) then build for production
 - `npm run lint` — Run ESLint
 - `npm run preview` — Preview production build
+
+**Dev workflow:** Run both `go run server/main.go` and `npm run dev`. The Vite dev server proxies `/api/*` requests to the Go backend.
 
 No test framework is configured.
 
@@ -29,8 +32,8 @@ Three stores in `src/store/`:
 All node types are registered in `src/nodes/nodeTypes.ts`. Most nodes delegate to `BaseNode.tsx`, which renders a header (with category color and icon) and a dynamic pin layout with inline value editors.
 
 Key node component files and what they wrap:
-- `BaseNode.tsx` — Shared rendering for function, event, variable, math, branch, loop, pure nodes
-- `StartNode.tsx`, `CommentNode.tsx`, `ConstantNode.tsx`, `ConversionNode.tsx`, `ArrayNode.tsx`, `MapNode.tsx` — Custom renderers for nodes with unique layouts
+- `BaseNode.tsx` — Shared rendering for function, event, math, branch, loop, pure nodes
+- `StartNode.tsx`, `CommentNode.tsx`, `ConstantNode.tsx`, `ConversionNode.tsx`, `ArrayNode.tsx`, `RequestNode.tsx` — Custom renderers for nodes with unique layouts
 
 Node templates live in `src/components/nodeFactory.ts`, which also defines sidebar categories and the `createNodeFromType()` factory function.
 
@@ -44,7 +47,11 @@ When a user connects two pins of different but compatible data types, `flowStore
 
 ### Execution Engine
 
-`src/engine/executor.ts` — Walks the graph from Start nodes following execution pins. Supports branching, loops (for/while/for-each with index/value outputs), and a 1000-step safety limit. The engine is purely visual/educational — it resolves values through connected pins and emits messages to the output console.
+`src/engine/executor.ts` — Walks the graph from Start nodes following execution pins. Supports branching, loops (for/while/for-each with index/value outputs), HTTP requests (proxied through Go backend), and a 1000-step safety limit.
+
+### Go Backend Proxy
+
+`server/main.go` — Single-file Go server that proxies HTTP requests to avoid browser CORS restrictions. The frontend sends request details to `POST /api/request`, the Go server makes the actual request and returns the response. Serves static files from `./dist` for production use.
 
 ### Adding a New Node Type
 
