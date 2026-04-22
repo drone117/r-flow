@@ -93,10 +93,7 @@ function resolveOutputValue(
     }
 
     if (data.label.includes('*')) {
-      if (NUMERIC_TYPES.has(aType) && NUMERIC_TYPES.has(bType)) {
-        return String((parseFloat(aVal) || 0) * (parseFloat(bVal) || 0));
-      }
-      return '';
+      return String((parseFloat(aVal) || 0) * (parseFloat(bVal) || 0));
     }
 
     // Add

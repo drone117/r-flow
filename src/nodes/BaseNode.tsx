@@ -89,7 +89,7 @@ export function BaseNode({ id, data }: BaseNodeProps) {
     >
       <div className="blueprint-node__header">
         <span className="blueprint-node__header-icon">
-          <NodeIcon category={category} />
+          <NodeIcon category={category} label={label} />
         </span>
         <span className="blueprint-node__header-label">{label}</span>
       </div>

@@ -1,8 +1,9 @@
 interface NodeIconProps {
   category: string;
+  label?: string;
 }
 
-export function NodeIcon({ category }: NodeIconProps) {
+export function NodeIcon({ category, label }: NodeIconProps) {
   const size = 14;
 
   switch (category) {
@@ -26,6 +27,14 @@ export function NodeIcon({ category }: NodeIconProps) {
         </svg>
       );
     case 'math':
+      if (label === 'Multiply') {
+        return (
+          <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+            <path d="M4 4L12 12" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />
+            <path d="M12 4L4 12" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />
+          </svg>
+        );
+      }
       return (
         <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
           <path d="M4 8H12" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />
