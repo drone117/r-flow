@@ -31,6 +31,18 @@ function resolveInputValue(ctx: ExecCtx, nodeId: string, handleId: string): stri
   return data?.values?.[handleId] ?? '';
 }
 
+function resolveInputType(ctx: ExecCtx, nodeId: string, handleId: string): PinDataType {
+  const edge = ctx.edges.find(
+    (e) => e.target === nodeId && e.targetHandle === handleId,
+  );
+  if (edge) {
+    return (edge.data as { dataType?: PinDataType }).dataType ?? 'wildcard';
+  }
+  return 'wildcard';
+}
+
+const NUMERIC_TYPES: Set<string> = new Set(['float', 'int']);
+
 function resolveOutputValue(
   ctx: ExecCtx,
   nodeId: string,
@@ -66,18 +78,35 @@ function resolveOutputValue(
   }
 
   if (data.category === 'math') {
-    const a = resolveInputValue(ctx, nodeId, data.inputs?.[0]?.id ?? 'a');
-    const b = resolveInputValue(ctx, nodeId, data.inputs?.[1]?.id ?? 'b');
-    const numA = parseFloat(a) || 0;
-    const numB = parseFloat(b) || 0;
-    if (data.label.includes('+')) return String(numA + numB);
-    if (data.label.includes('*')) return String(numA * numB);
+    const aPin = data.inputs?.[0]?.id ?? 'a';
+    const bPin = data.inputs?.[1]?.id ?? 'b';
+    const aVal = resolveInputValue(ctx, nodeId, aPin);
+    const bVal = resolveInputValue(ctx, nodeId, bPin);
+    const aType = resolveInputType(ctx, nodeId, aPin);
+    const bType = resolveInputType(ctx, nodeId, bPin);
+
     if (data.label.includes('Clamp')) {
-      const val = numA;
-      const min = numB;
-      return String(Math.max(min, val));
+      if (NUMERIC_TYPES.has(aType) && NUMERIC_TYPES.has(bType)) {
+        return String(Math.max(parseFloat(bVal) || 0, parseFloat(aVal) || 0));
+      }
+      return '';
     }
-    return String(numA + numB);
+
+    if (data.label.includes('*')) {
+      if (NUMERIC_TYPES.has(aType) && NUMERIC_TYPES.has(bType)) {
+        return String((parseFloat(aVal) || 0) * (parseFloat(bVal) || 0));
+      }
+      return '';
+    }
+
+    // Add
+    if (aType === 'string' || bType === 'string') {
+      return aVal + bVal;
+    }
+    if (NUMERIC_TYPES.has(aType) && NUMERIC_TYPES.has(bType)) {
+      return String((parseFloat(aVal) || 0) + (parseFloat(bVal) || 0));
+    }
+    return '';
   }
 
   if (node.type === 'arrayNode' && 'items' in data) {

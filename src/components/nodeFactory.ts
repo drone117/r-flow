@@ -60,28 +60,28 @@ const templates: Record<string, NodeTemplate> = {
   mathAdd: {
     type: 'mathNode',
     data: {
-      label: 'Float + Float',
+      label: 'Add',
       category: 'math',
       inputs: [
-        { id: 'a', label: 'A', direction: 'target', dataType: 'float' },
-        { id: 'b', label: 'B', direction: 'target', dataType: 'float' },
+        { id: 'a', label: 'A', direction: 'target', dataType: 'wildcard' },
+        { id: 'b', label: 'B', direction: 'target', dataType: 'wildcard' },
       ],
       outputs: [
-        { id: 'result', label: 'Result', direction: 'source', dataType: 'float' },
+        { id: 'result', label: 'Result', direction: 'source', dataType: 'wildcard' },
       ],
     },
   },
   mathMultiply: {
     type: 'mathNode',
     data: {
-      label: 'Float * Float',
+      label: 'Multiply',
       category: 'math',
       inputs: [
-        { id: 'a', label: 'A', direction: 'target', dataType: 'float' },
-        { id: 'b', label: 'B', direction: 'target', dataType: 'float' },
+        { id: 'a', label: 'A', direction: 'target', dataType: 'wildcard' },
+        { id: 'b', label: 'B', direction: 'target', dataType: 'wildcard' },
       ],
       outputs: [
-        { id: 'result', label: 'Result', direction: 'source', dataType: 'float' },
+        { id: 'result', label: 'Result', direction: 'source', dataType: 'wildcard' },
       ],
     },
   },
@@ -91,11 +91,11 @@ const templates: Record<string, NodeTemplate> = {
       label: 'Clamp',
       category: 'math',
       inputs: [
-        { id: 'value', label: 'Value', direction: 'target', dataType: 'float' },
-        { id: 'min', label: 'Min', direction: 'target', dataType: 'float' },
+        { id: 'value', label: 'Value', direction: 'target', dataType: 'wildcard' },
+        { id: 'min', label: 'Min', direction: 'target', dataType: 'wildcard' },
       ],
       outputs: [
-        { id: 'result', label: 'Result', direction: 'source', dataType: 'float' },
+        { id: 'result', label: 'Result', direction: 'source', dataType: 'wildcard' },
       ],
     },
   },
@@ -359,8 +359,8 @@ export const sidebarCategories: SidebarCategory[] = [
   {
     name: 'Math',
     items: [
-      { type: 'mathAdd', label: 'Float + Float', category: 'math' },
-      { type: 'mathMultiply', label: 'Float * Float', category: 'math' },
+      { type: 'mathAdd', label: 'Add', category: 'math' },
+      { type: 'mathMultiply', label: 'Multiply', category: 'math' },
       { type: 'mathClamp', label: 'Clamp', category: 'math' },
     ],
   },
