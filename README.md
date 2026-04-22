@@ -1,73 +1,110 @@
-# React + TypeScript + Vite
+# R-Flow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A visual blueprint/node-based programming editor built with React, inspired by Unreal Engine's Blueprint system. Drag nodes onto a canvas, connect them via typed pins, and execute the graph.
 
-Currently, two official plugins are available:
+![R-Flow Screenshot](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-6-blue) ![Vite](https://img.shields.io/badge/Vite-8-purple)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Visual node editor** with drag-and-drop from a categorized sidebar palette
+- **Typed pin system** — execution pins (white wires) control flow, data pins (colored wires) carry values
+- **Auto type conversion** — connecting mismatched compatible types (e.g., float → string) auto-inserts a conversion node
+- **Wildcard pins** — math nodes accept any numeric type and resolve their color from connections
+- **Execution engine** — recursive graph walker supporting branches, loops (for/while/for-each), delays, and HTTP requests
+- **HTTP Request node** — server-side proxy avoids CORS, with collapsible output pins (status, JSON, text, headers, OK)
+- **Undo/Redo** — 50-step history with Ctrl+Z / Ctrl+Shift+Z
+- **Save/Load** — export and import blueprints as JSON files
+- **Minimap** — pannable and zoomable overview of the canvas
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Quick Start
 
-## Expanding the ESLint configuration
+```bash
+# Install dependencies
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# Start development server (port 5173)
+npm run dev
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Build for production
+npm run build
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Preview production build
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+For production deployment with the Go backend:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Build the frontend
+npm run build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start the Go server (serves static files + API proxy on port 8080)
+go run server/main.go
 ```
+
+## Available Nodes
+
+| Category | Nodes |
+|----------|-------|
+| **Events** | Start |
+| **Functions** | Print String, HTTP Request, Delay |
+| **Constants** | String, Float, Int, Bool, JSON |
+| **Arrays** | String Array, Float Array, Int Array, Bool Array |
+| **Math** | Add, Multiply, Clamp |
+| **Flow Control** | Branch, For Loop, While Loop, For Each Loop |
+| **Utilities** | Comment, Format Text |
+
+## Pin Data Types
+
+| Type | Color | Description |
+|------|-------|-------------|
+| Execution | White | Controls flow between nodes |
+| Float | Yellow | Decimal numbers |
+| Int | Teal | Integer numbers |
+| String | Pink | Text strings |
+| Bool | Red | Boolean (true/false) |
+| JSON | Green | JSON objects/arrays |
+| Object | Blue | Opaque objects |
+| Wildcard | Gray | Accepts any type |
+
+## Tech Stack
+
+- **React 19** + **TypeScript 6** — UI framework
+- **@xyflow/react** — Canvas library for node-based editors
+- **Zustand** — Lightweight state management
+- **Vite 8** — Build tool and dev server
+- **Go** — Production backend for HTTP request proxying
+
+## Architecture
+
+```
+src/
+├── components/       # UI components (canvas, toolbar, sidebar, node factory)
+├── edges/            # Custom edge renderer (bezier curves with glow)
+├── engine/           # Graph execution engine (recursive walker)
+├── hooks/            # Custom React hooks (drag-and-drop context)
+├── nodes/            # Node components (BaseNode + specialized renderers)
+├── pins/             # Pin components (data pins, execution pins, labels)
+├── sidebar/          # Node palette sidebar
+├── store/            # Zustand state stores (flow, execution, output)
+├── toolbar/          # Top toolbar (run, undo/redo, save/load, zoom)
+├── types/            # TypeScript type definitions
+└── utils/            # Utility functions (type conversion)
+
+server/
+└── main.go           # Go HTTP server (API proxy + static file serving)
+```
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Z` | Undo |
+| `Ctrl+Shift+Z` / `Ctrl+Y` | Redo |
+| `Delete` / `Backspace` | Delete selected nodes/edges |
+| `Shift+Click` | Multi-select |
+| `Alt+Click` on edge | Delete edge |
+
+## License
+
+Private project.

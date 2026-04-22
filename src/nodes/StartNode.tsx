@@ -1,3 +1,13 @@
+/**
+ * Start node component.
+ *
+ * Entry point for graph execution. Unlike other nodes, Start nodes have
+ * NO input pins — only an execution output pin. The executor finds all
+ * Start nodes and begins execution from each one.
+ *
+ * This is a custom renderer (not using BaseNode) because Start nodes
+ * have a unique layout: no inputs, only outputs on the right side.
+ */
 import { type NodeProps, Position } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
 import { CATEGORY_COLORS } from '../types';
@@ -26,6 +36,7 @@ export function StartNode({ id, data }: NodeProps) {
       <div className="blueprint-node__body">
         {outputs.map((output) => (
           <div key={output.id} className="blueprint-node__row">
+            {/* Empty spacer on the left side — Start nodes have no inputs */}
             <div className="blueprint-node__pin-group">
               <span style={{ width: 16 }} />
             </div>

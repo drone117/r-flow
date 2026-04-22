@@ -1,3 +1,29 @@
+/**
+ * Toolbar component — the top control bar.
+ *
+ * A floating panel (positioned top-center via React Flow's <Panel>)
+ * with buttons for common actions:
+ *
+ *   - **Run** (▶): Executes the graph from all Start nodes.
+ *     Disables while execution is in progress. Calls `executeGraph()`
+ *     with the current nodes and edges, passing store callbacks for
+ *     output messages, node/edge highlighting, and a 300ms animation delay.
+ *
+ *   - **Undo/Redo**: Reverts or re-applies graph state changes.
+ *     Also available via Ctrl+Z / Ctrl+Shift+Z keyboard shortcuts.
+ *
+ *   - **Save**: Downloads the current graph as a JSON file (blueprint.json).
+ *     Creates a Blob, generates a temporary URL, clicks a hidden <a>,
+ *     then revokes the URL.
+ *
+ *   - **Load**: Opens a file picker for JSON blueprint files.
+ *     Parses the file and calls `flowStore.loadBlueprint()` to replace
+ *     the entire graph state.
+ *
+ *   - **Zoom In/Out/Fit View**: Canvas navigation controls.
+ *
+ *   - **Snap to Grid / Minimap**: Toggle buttons with active state styling.
+ */
 import { useCallback, useRef } from 'react';
 import { Panel } from '@xyflow/react';
 import { useReactFlow } from '@xyflow/react';
@@ -30,6 +56,7 @@ export function Toolbar() {
   const loadBlueprint = useFlowStore((s) => s.loadBlueprint);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /** Download the current graph as a JSON file. */
   const handleSave = useCallback(() => {
     const json = JSON.stringify({ nodes, edges }, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
@@ -41,10 +68,12 @@ export function Toolbar() {
     URL.revokeObjectURL(url);
   }, [nodes, edges]);
 
+  /** Open the file picker for loading a blueprint. */
   const handleLoad = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
+  /** Read the selected file and load it as a blueprint. */
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -56,13 +85,14 @@ export function Toolbar() {
           loadBlueprint(data.nodes, data.edges);
         }
       } catch {
-        // ignore invalid files
+        // Ignore invalid files silently
       }
     };
     reader.readAsText(file);
-    e.target.value = '';
+    e.target.value = ''; // Reset so the same file can be loaded again
   }, [loadBlueprint]);
 
+  /** Execute the graph from all Start nodes. */
   const handleRun = useCallback(async () => {
     if (isExecuting) return;
     clearMessages();
@@ -77,7 +107,7 @@ export function Toolbar() {
   return (
     <Panel position="top-center">
       <div className="toolbar">
-        {/* Run */}
+        {/* Run button */}
         <ToolbarButton
           tooltip="Run (Execute from Start nodes)"
           disabled={isExecuting}
@@ -145,6 +175,7 @@ export function Toolbar() {
           }
         />
 
+        {/* Hidden file input for Load — triggered programmatically */}
         <input
           ref={fileInputRef}
           type="file"
@@ -194,7 +225,7 @@ export function Toolbar() {
 
         <div className="toolbar__separator" />
 
-        {/* Snap to Grid */}
+        {/* Snap to Grid toggle */}
         <ToolbarButton
           tooltip="Snap to Grid"
           active={snapEnabled}
@@ -207,7 +238,7 @@ export function Toolbar() {
           }
         />
 
-        {/* Minimap */}
+        {/* Minimap toggle */}
         <ToolbarButton
           tooltip="Toggle Minimap"
           active={minimapEnabled}

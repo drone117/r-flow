@@ -1,3 +1,22 @@
+/**
+ * Comment node component.
+ *
+ * Free-text annotation boxes placed on the canvas. They don't participate
+ * in execution — they're purely visual documentation.
+ *
+ * Key features:
+ *   - Auto-resizing textarea that grows as the user types
+ *   - Horizontal resize handle on the right edge (drag to change width)
+ *   - Enter (without Shift) blurs the textarea instead of adding a newline
+ *   - Comment text is NOT stored in `values` — it uses `commentText` on
+ *     the node data directly (no persistent state sync needed; the
+ *     textarea manages its own content via `defaultValue`)
+ *
+ * The resize handle works by:
+ *   1. onMouseDown → record starting X position and current width
+ *   2. window mousemove → calculate delta, clamp to [160, 800], update node style
+ *   3. window mouseup → stop tracking
+ */
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { type NodeProps, useReactFlow } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
@@ -5,6 +24,7 @@ import { CATEGORY_COLORS } from '../types';
 import { NodeIcon } from '../components/NodeIcon';
 import './BaseNode.css';
 
+/** Auto-resize a textarea to fit its content. */
 function autoResize(el: HTMLTextAreaElement) {
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
@@ -18,12 +38,14 @@ export function CommentNode({ id, data }: NodeProps) {
   const startXRef = useRef(0);
   const startWidthRef = useRef(0);
 
+  // Auto-resize on mount
   useEffect(() => {
     if (textareaRef.current) {
       autoResize(textareaRef.current);
     }
   }, []);
 
+  // Begin horizontal resize drag
   const onResizeStart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -35,6 +57,7 @@ export function CommentNode({ id, data }: NodeProps) {
     [],
   );
 
+  // Track mouse movement during resize, update node width in the store
   useEffect(() => {
     if (!isResizing) return;
 
@@ -79,6 +102,7 @@ export function CommentNode({ id, data }: NodeProps) {
           rows={1}
           onInput={(e) => autoResize(e.currentTarget)}
           onKeyDown={(e) => {
+            // Enter without Shift blurs the textarea (single-line mode)
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
               e.currentTarget.blur();
@@ -87,6 +111,7 @@ export function CommentNode({ id, data }: NodeProps) {
           onFocus={(e) => e.stopPropagation()}
         />
       </div>
+      {/* Drag handle on the right edge for horizontal resizing */}
       <div className="blueprint-node__resize-handle nodrag" onMouseDown={onResizeStart} />
     </div>
   );

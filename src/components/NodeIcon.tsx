@@ -1,6 +1,27 @@
+/**
+ * Node icon component.
+ *
+ * Renders a small 14×14 SVG icon in the node header, based on the node's
+ * category (and optionally label for special cases like Multiply).
+ *
+ * Icons are inspired by Unreal Engine's Blueprint system:
+ *   - function: "f" shape (function letter)
+ *   - event: star shape
+ *   - math: plus sign (default) or × for Multiply
+ *   - branch: triangle (decision)
+ *   - loop: circular arrow
+ *   - start: play triangle
+ *   - comment: speech bubble
+ *   - pure: lambda "λ" shape
+ *   - conversion: double arrow (→←)
+ *   - constant: document shape
+ *   - array: list with lines
+ *
+ * All icons use `rgba(255,255,255,0.85)` for visibility on dark headers.
+ */
 interface NodeIconProps {
   category: string;
-  label?: string;
+  label?: string;  // Used for special cases (e.g., Multiply gets × instead of +)
 }
 
 export function NodeIcon({ category, label }: NodeIconProps) {
@@ -28,6 +49,7 @@ export function NodeIcon({ category, label }: NodeIconProps) {
       );
     case 'math':
       if (label === 'Multiply') {
+        // × symbol for multiplication
         return (
           <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
             <path d="M4 4L12 12" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />
@@ -35,6 +57,7 @@ export function NodeIcon({ category, label }: NodeIconProps) {
           </svg>
         );
       }
+      // + symbol for addition (default math icon)
       return (
         <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
           <path d="M4 8H12" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" />

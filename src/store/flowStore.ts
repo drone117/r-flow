@@ -1,3 +1,20 @@
+/**
+ * Core graph state store.
+ *
+ * Manages the nodes and edges that make up the blueprint graph, plus
+ * undo/redo history, snap-to-grid, minimap, and drag-and-drop node creation.
+ *
+ * This is the central store — almost every component reads from it.
+ *
+ * Key concepts:
+ *   - Nodes are the boxes on the canvas (Print String, Branch, etc.)
+ *   - Edges are the wires connecting node pins
+ *   - The store uses Zustand, a lightweight state management library
+ *   - React Flow calls onNodesChange/onEdgesChange when the user drags,
+ *     deletes, or selects nodes/edges — we pass those through to Zustand
+ *   - onConnect is called when the user draws a new wire between two pins
+ */
+
 import { create } from 'zustand';
 import {
   type Node,
@@ -15,19 +32,25 @@ import { PIN_COLORS } from '../types';
 import { isConvertible, getConversionLabel } from '../utils/conversionUtils';
 import type { PinDataType } from '../types';
 
+/** Maximum number of undo steps kept in history. */
 const MAX_HISTORY = 50;
 
 interface FlowState {
   nodes: Node[];
   edges: Edge[];
+  /** Previous states for undo (most recent last). */
   past: { nodes: Node[]; edges: Edge[] }[];
+  /** Future states for redo (after an undo). */
   future: { nodes: Node[]; edges: Edge[] }[];
   snapEnabled: boolean;
   minimapEnabled: boolean;
 
+  // --- React Flow callbacks (passed directly to <ReactFlow>) ---
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: (connection: Connection) => void;
+
+  // --- Actions ---
   addNode: (node: Node) => void;
   loadBlueprint: (nodes: Node[], edges: Edge[]) => void;
   toggleSnap: () => void;
@@ -36,6 +59,10 @@ interface FlowState {
   redo: () => void;
 }
 
+/**
+ * Save the current graph state into the undo history.
+ * Called before any destructive change (drag complete, node delete, new connection).
+ */
 function saveSnapshot(
   state: FlowState,
 ): { past: FlowState['past']; future: FlowState['future'] } {
@@ -43,10 +70,11 @@ function saveSnapshot(
     ...state.past,
     { nodes: state.nodes, edges: state.edges },
   ].slice(-MAX_HISTORY);
-  const future: FlowState['future'] = [];
+  const future: FlowState['future'] = []; // Any redo history is invalidated
   return { past, future };
 }
 
+// --- Default graph shown when the app first loads ---
 const initialNodes: Node[] = [
   {
     id: 'comment-1',
@@ -127,6 +155,10 @@ const initialEdges: Edge[] = [
   },
 ];
 
+/**
+ * Build an Edge object with the blueprint type and data.
+ * Called whenever a new connection is created (either direct or via conversion node).
+ */
 function buildEdge(conn: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }, dataType: PinDataType): Edge {
   return {
     ...conn,
@@ -138,6 +170,10 @@ function buildEdge(conn: { source: string; target: string; sourceHandle?: string
   };
 }
 
+/**
+ * Track which nodes are currently being dragged. Used to save a snapshot
+ * only once per drag (when dragging starts), rather than on every pixel movement.
+ */
 const draggingNodes = new Set<string>();
 
 export const useFlowStore = create<FlowState>((set, get) => ({
@@ -148,6 +184,10 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   snapEnabled: true,
   minimapEnabled: true,
 
+  /**
+   * Called by React Flow when nodes change (drag, select, delete, etc.).
+   * We save an undo snapshot when a drag starts or a node is deleted.
+   */
   onNodesChange: (changes) => {
     const isDragStart = changes.some((c: NodeChange) =>
       c.type === 'position' && c.dragging === true && !draggingNodes.has(c.id),
@@ -168,6 +208,10 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     set({ nodes: applyNodeChanges(changes, get().nodes) });
   },
 
+  /**
+   * Called by React Flow when edges change (delete, select, etc.).
+   * We save an undo snapshot when an edge is deleted.
+   */
   onEdgesChange: (changes) => {
     if (changes.some((c: EdgeChange) => c.type === 'remove')) {
       set({ ...saveSnapshot(get()), edges: applyEdgeChanges(changes, get().edges) });
@@ -176,6 +220,16 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     set({ edges: applyEdgeChanges(changes, get().edges) });
   },
 
+  /**
+   * Called when the user draws a wire between two pins.
+   *
+   * Connection logic:
+   * 1. Look up the pin types on both sides.
+   * 2. If types match, or either is wildcard → create a direct edge.
+   * 3. If types differ but are convertible (e.g., float→string) →
+   *    auto-insert a ConversionNode between them.
+   * 4. Otherwise → reject (handled by isValidConnection in BlueprintCanvas).
+   */
   onConnect: (connection) => {
     const { past, future } = saveSnapshot(get());
     const state = get();
@@ -191,15 +245,16 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     const sourceType = (sourcePin?.dataType ?? 'wildcard') as PinDataType;
     const targetType = (targetPin?.dataType ?? 'wildcard') as PinDataType;
 
-    // Types match or wildcard — direct edge (existing behavior)
+    // Direct connection: types match, or one side is wildcard
     if (sourceType === targetType || sourceType === 'wildcard' || targetType === 'wildcard') {
+      // When the source is wildcard, use the target's type as the resolved type
       const resolvedType = sourceType === 'wildcard' ? targetType : sourceType;
       const newEdge = buildEdge(connection, resolvedType);
       set({ edges: addEdge(newEdge, state.edges), past, future });
       return;
     }
 
-    // Convertible mismatch — insert conversion node
+    // Type mismatch but convertible → insert a ConversionNode between them
     if (isConvertible(sourceType, targetType)) {
       const convId = `conv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const midX = ((sourceNode?.position.x ?? 0) + (targetNode?.position.x ?? 0)) / 2;
@@ -223,10 +278,12 @@ export const useFlowStore = create<FlowState>((set, get) => ({
         },
       };
 
+      // Edge from source → conversion node input
       const edge1 = buildEdge(
         { source: connection.source, sourceHandle: connection.sourceHandle, target: convId, targetHandle: 'value-in' },
         sourceType,
       );
+      // Edge from conversion node output → target
       const edge2 = buildEdge(
         { source: convId, sourceHandle: 'value-out', target: connection.target, targetHandle: connection.targetHandle },
         targetType,
@@ -241,9 +298,10 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       return;
     }
 
-    // Non-convertible mismatch — shouldn't reach here due to isValidConnection, but ignore
+    // Non-convertible mismatch — shouldn't reach here due to isValidConnection guard
   },
 
+  /** Add a new node to the canvas (used by drag-and-drop from the sidebar). */
   addNode: (node) => {
     const { past, future } = saveSnapshot(get());
     set({
@@ -253,6 +311,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     });
   },
 
+  /** Replace the entire graph (used by load/save blueprint). */
   loadBlueprint: (newNodes, newEdges) => {
     set({ nodes: newNodes, edges: newEdges, past: [], future: [] });
   },
@@ -260,6 +319,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   toggleSnap: () => set({ snapEnabled: !get().snapEnabled }),
   toggleMinimap: () => set({ minimapEnabled: !get().minimapEnabled }),
 
+  /** Restore the previous graph state. */
   undo: () => {
     const { past, nodes, edges, future } = get();
     if (past.length === 0) return;
@@ -272,6 +332,7 @@ export const useFlowStore = create<FlowState>((set, get) => ({
     });
   },
 
+  /** Re-apply a state that was undone. */
   redo: () => {
     const { past, nodes, edges, future } = get();
     if (future.length === 0) return;

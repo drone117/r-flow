@@ -1,3 +1,33 @@
+/**
+ * HTTP Request node component.
+ *
+ * A custom node for making HTTP requests during graph execution. Has a
+ * unique layout compared to BaseNode because it needs:
+ *   - Text inputs for URL, dropdown for method, textareas for params/body
+ *   - JSON validation on blur for the params and body fields
+ *   - Collapsible secondary output pins (headers, ok) — primary outputs
+ *     (status, json, text) are always visible
+ *
+ * Architecture:
+ *   - During execution, the executor sends a POST to `/api/request` with
+ *     the user's URL, method, params, and body. The response is stored in
+ *     `ctx.requestResults` and downstream nodes read it via `resolveOutputValue`.
+ *   - The Vite dev server (or Go backend in production) proxies the actual
+ *     HTTP request to avoid browser CORS restrictions.
+ *
+ * Collapsible pins:
+ *   - The secondary outputs (Headers, OK) are always rendered in the DOM
+ *     (required by React Flow for edge position calculation) but hidden
+ *     with CSS `max-height: 0` and `overflow: hidden` when collapsed.
+ *   - The toggle button switches between ▼ (collapsed) and ▲ (expanded).
+ *
+ * Input fields:
+ *   - When a pin is connected (has an incoming edge), the inline editor
+ *     is hidden — the value comes from the connected source instead.
+ *   - The `connectedInputIds` set is derived from the current edges state.
+ *   - JSON textareas auto-resize as the user types and show a red border
+ *     on blur if the content isn't valid JSON.
+ */
 import { useState } from 'react';
 import { type NodeProps, Position, useReactFlow, useStore } from '@xyflow/react';
 import type { BlueprintNodeData } from '../types';
@@ -9,6 +39,7 @@ import { NodeIcon } from '../components/NodeIcon';
 import { useExecutionStore } from '../store/executionStore';
 import './RequestNode.css';
 
+/** Supported HTTP methods shown in the dropdown. */
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
 export function RequestNode({ id, data }: NodeProps) {
@@ -21,6 +52,7 @@ export function RequestNode({ id, data }: NodeProps) {
   const [paramsValid, setParamsValid] = useState(true);
   const [bodyValid, setBodyValid] = useState(true);
 
+  /** Set of input pin IDs that have an incoming edge connected. */
   const connectedInputIds = useStore((s) => {
     const ids = new Set<string>();
     for (const e of s.edges) {
@@ -29,6 +61,7 @@ export function RequestNode({ id, data }: NodeProps) {
     return ids;
   });
 
+  /** Update a value in this node's data.values map. */
   const onValueChange = (pinId: string, value: string) => {
     setNodes((nds) =>
       nds.map((n) => {
@@ -44,6 +77,7 @@ export function RequestNode({ id, data }: NodeProps) {
     );
   };
 
+  /** Auto-resize a textarea to fit its content. */
   const onTextareaInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
     const el = e.currentTarget;
     el.style.height = 'auto';
@@ -62,7 +96,7 @@ export function RequestNode({ id, data }: NodeProps) {
         <span className="blueprint-node__header-label">{label}</span>
       </div>
       <div className="blueprint-node__body">
-        {/* Execution input */}
+        {/* Execution flow pins: exec-in on the left, exec-out on the right */}
         <div className="blueprint-node__row">
           <div className="blueprint-node__pin-group">
             <ExecutionPin id="exec-in" type="target" position={Position.Left} />
@@ -72,7 +106,7 @@ export function RequestNode({ id, data }: NodeProps) {
           </div>
         </div>
 
-        {/* URL */}
+        {/* URL input — accepts a string or can be connected externally */}
         <div className="blueprint-node__row">
           <div className="blueprint-node__pin-group">
             <DataPin id="url" type="target" dataType="string" position={Position.Left} />
@@ -90,7 +124,7 @@ export function RequestNode({ id, data }: NodeProps) {
           </div>
         </div>
 
-        {/* Method */}
+        {/* Method dropdown — GET, POST, PUT, PATCH, DELETE */}
         <div className="blueprint-node__row">
           <div className="blueprint-node__pin-group">
             <DataPin id="method" type="target" dataType="string" position={Position.Left} />
@@ -111,7 +145,7 @@ export function RequestNode({ id, data }: NodeProps) {
           </div>
         </div>
 
-        {/* Params */}
+        {/* Params textarea — expects a JSON object of query parameters */}
         <div className="blueprint-node__row">
           <div className="blueprint-node__pin-group">
             <DataPin id="params" type="target" dataType="json" position={Position.Left} />
@@ -122,6 +156,7 @@ export function RequestNode({ id, data }: NodeProps) {
                 value={values.params ?? '{}'}
                 onChange={(e) => { onValueChange('params', e.target.value); setParamsValid(true); }}
                 onBlur={() => {
+                  // Validate JSON on blur
                   try { JSON.parse(values.params ?? '{}'); setParamsValid(true); }
                   catch { setParamsValid(false); }
                 }}
@@ -135,7 +170,7 @@ export function RequestNode({ id, data }: NodeProps) {
           </div>
         </div>
 
-        {/* Body */}
+        {/* Body textarea — JSON body sent with POST/PUT/PATCH requests */}
         <div className="blueprint-node__row">
           <div className="blueprint-node__pin-group">
             <DataPin id="body" type="target" dataType="json" position={Position.Left} />
@@ -159,7 +194,7 @@ export function RequestNode({ id, data }: NodeProps) {
           </div>
         </div>
 
-        {/* Primary outputs */}
+        {/* Primary output pins — always visible */}
         <div className="blueprint-node__output-section">
           <div className="blueprint-node__row">
             <div className="blueprint-node__pin-group" />
@@ -184,7 +219,7 @@ export function RequestNode({ id, data }: NodeProps) {
           </div>
         </div>
 
-        {/* Collapse toggle */}
+        {/* Collapse/expand toggle button */}
         <div className="blueprint-node__row">
           <div className="blueprint-node__pin-group" />
           <div className="blueprint-node__pin-group blueprint-node__pin-group--right">
@@ -197,7 +232,7 @@ export function RequestNode({ id, data }: NodeProps) {
           </div>
         </div>
 
-        {/* Collapsible secondary outputs — handles always in DOM for edge calculation */}
+        {/* Collapsible secondary outputs — always in DOM for React Flow edge calculation */}
         <div className={`blueprint-node__collapsed-section ${expanded ? 'expanded' : ''}`}>
           <div className="blueprint-node__row">
             <div className="blueprint-node__pin-group" />

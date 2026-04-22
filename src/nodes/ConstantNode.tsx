@@ -1,3 +1,21 @@
+/**
+ * Constant node component.
+ *
+ * Renders a typed value constant (String, Float, Int, Bool, JSON) that
+ * can be connected to data input pins on other nodes.
+ *
+ * The node's `dataType` field determines:
+ *   - The header color (matches the pin color for that type)
+ *   - The type badge shown in the header (e.g., "Float", "String[]")
+ *   - The editor widget: text input for numeric/string, <select> for bool,
+ *     <textarea> for JSON/array/map
+ *
+ * All constants store their value under the key "value" in `data.values`.
+ * The output pin is always `value-out` on the right side.
+ *
+ * JSON constants have on-blur validation — the textarea border turns red
+ * if the content isn't valid JSON.
+ */
 import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { useState } from 'react';
 import type { BlueprintNodeData } from '../types';
@@ -7,6 +25,7 @@ import './BaseNode.css';
 
 type ConstType = string;
 
+/** Human-readable labels shown in the type badge. */
 const TYPE_LABELS: Record<ConstType, string> = {
   execution: 'Exec',
   float: 'Float',
@@ -20,6 +39,7 @@ const TYPE_LABELS: Record<ConstType, string> = {
   json: 'JSON',
 };
 
+/** Header background color per type — matches the pin color system. */
 const TYPE_HEADERS: Record<ConstType, string> = {
   execution: '#ffffff',
   float: '#e8d44d',
@@ -33,6 +53,7 @@ const TYPE_HEADERS: Record<ConstType, string> = {
   json: '#50c878',
 };
 
+/** Types that use a multi-line textarea instead of a single-line input. */
 const MULTI_LINE_TYPES = new Set(['array', 'map', 'json']);
 
 export function ConstantNode({ id, data }: NodeProps) {
@@ -46,6 +67,7 @@ export function ConstantNode({ id, data }: NodeProps) {
   const isJson = dataType === 'json';
   const [jsonValid, setJsonValid] = useState(true);
 
+  /** Update the stored value for this constant node. */
   const onValueChange = (val: string) => {
     setNodes((nds) =>
       nds.map((n) => {
@@ -61,6 +83,7 @@ export function ConstantNode({ id, data }: NodeProps) {
     );
   };
 
+  /** Placeholder text varies by data type to guide the user. */
   const placeholder = dataType === 'array'
     ? 'item1\nitem2\nitem3'
     : dataType === 'map'
@@ -79,6 +102,7 @@ export function ConstantNode({ id, data }: NodeProps) {
       style={{ '--header-color': headerColor } as React.CSSProperties}
     >
       <div className="blueprint-node__header">
+        {/* Type badge: colored pill showing the data type name */}
         <span
           className="blueprint-node__const-badge"
           style={{ background: pinColor }}
@@ -89,6 +113,7 @@ export function ConstantNode({ id, data }: NodeProps) {
       </div>
       <div className="blueprint-node__body">
         {isMultiLine ? (
+          // Multi-line textarea for JSON, array, and map types
           <textarea
             className={`blueprint-node__const-textarea nodrag ${isJson && !jsonValid ? 'blueprint-node__const-textarea--error' : ''}`}
             value={value}
@@ -97,6 +122,7 @@ export function ConstantNode({ id, data }: NodeProps) {
               if (isJson) setJsonValid(true);
             }}
             onBlur={() => {
+              // Validate JSON on blur — show red border if invalid
               if (isJson) {
                 try { JSON.parse(value); setJsonValid(true); }
                 catch { setJsonValid(false); }
@@ -107,12 +133,14 @@ export function ConstantNode({ id, data }: NodeProps) {
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onInput={(e) => {
+              // Auto-resize to fit content
               const el = e.currentTarget;
               el.style.height = 'auto';
               el.style.height = el.scrollHeight + 'px';
             }}
           />
         ) : dataType === 'bool' ? (
+          // Boolean uses a dropdown (true/false) instead of free text
           <div className="blueprint-node__row">
             <div className="blueprint-node__pin-group">
               <select
@@ -131,6 +159,7 @@ export function ConstantNode({ id, data }: NodeProps) {
             </div>
           </div>
         ) : (
+          // Single-line text input for float, int, string
           <div className="blueprint-node__row">
             <div className="blueprint-node__pin-group">
               <input
@@ -147,6 +176,7 @@ export function ConstantNode({ id, data }: NodeProps) {
             </div>
           </div>
         )}
+        {/* For multi-line types, the output pin goes on its own row below the textarea */}
         {isMultiLine && (
           <div className="blueprint-node__row">
             <div className="blueprint-node__pin-group" />

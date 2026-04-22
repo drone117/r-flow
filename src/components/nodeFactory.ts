@@ -1,10 +1,36 @@
+/**
+ * Node factory — creates new node instances from templates.
+ *
+ * This file serves two purposes:
+ *
+ * 1. **templates**: A map of node type keys to their default data. Each
+ *    template defines the node's React Flow type (which component to render),
+ *    label, category, pin definitions, and initial values.
+ *
+ * 2. **sidebarCategories**: The list of categories shown in the sidebar
+ *    palette. Each category has a name and a list of items that can be
+ *    dragged onto the canvas.
+ *
+ * When a user drags a node from the sidebar:
+ *   1. SidebarItem sets `event.dataTransfer` with the node type key
+ *   2. BlueprintCanvas.onDrop reads the type and calls `createNodeFromType()`
+ *   3. `createNodeFromType()` looks up the template, generates a unique ID,
+ *      and returns a new Node object with a copy of the template's data
+ *   4. The new node is added to the store via `flowStore.addNode()`
+ *
+ * The template data is SHALLOW-COPIED (spread operator), so each node
+ * gets its own data object. Arrays like `items` in ArrayNode are shared
+ * references — this is fine because they're replaced wholesale, not mutated.
+ */
 import type { Node, XYPosition } from '@xyflow/react';
 import type { PinConfig } from '../types';
 
+/** Generate a unique node ID using timestamp + random suffix. */
 function generateId(): string {
   return `node-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+/** Template for creating a new node. Matches the Node.data shape. */
 interface NodeTemplate {
   type: string;
   data: {
@@ -18,7 +44,12 @@ interface NodeTemplate {
   };
 }
 
+// ─── Node templates ──────────────────────────────────────────────────
+// Each key matches the `type` string used in drag-and-drop.
+// The `type` field maps to a component in nodeTypes.ts.
+
 const templates: Record<string, NodeTemplate> = {
+  // --- Events ---
   start: {
     type: 'startNode',
     data: {
@@ -29,6 +60,8 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
+
+  // --- Functions ---
   printString: {
     type: 'functionNode',
     data: {
@@ -80,6 +113,8 @@ const templates: Record<string, NodeTemplate> = {
       values: { url: '', method: 'GET', params: '{}', body: '{}' },
     },
   },
+
+  // --- Math ---
   mathAdd: {
     type: 'mathNode',
     data: {
@@ -122,6 +157,8 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
+
+  // --- Flow Control ---
   branch: {
     type: 'branchNode',
     data: {
@@ -186,6 +223,8 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
+
+  // --- Utilities ---
   comment: {
     type: 'commentNode',
     data: {
@@ -208,6 +247,8 @@ const templates: Record<string, NodeTemplate> = {
       ],
     },
   },
+
+  // --- Constants ---
   constString: {
     type: 'constantNode',
     data: {
@@ -268,6 +309,8 @@ const templates: Record<string, NodeTemplate> = {
       values: { value: '{}' },
     },
   },
+
+  // --- Arrays ---
   arrayString: {
     type: 'arrayNode',
     data: {
@@ -318,9 +361,22 @@ const templates: Record<string, NodeTemplate> = {
   },
 };
 
+// ─── Factory function ────────────────────────────────────────────────
+
+/**
+ * Create a new Node instance from a template key.
+ *
+ * Used by BlueprintCanvas.onDrop when the user drags a node type
+ * from the sidebar onto the canvas.
+ *
+ * @param type - The template key (e.g., 'printString', 'mathAdd')
+ * @param position - Canvas coordinates where the node was dropped
+ * @returns A new Node object with a unique ID and a copy of the template data
+ */
 export function createNodeFromType(type: string, position: XYPosition): Node {
   const template = templates[type];
   if (!template) {
+    // Unknown type — create a generic empty node
     return {
       id: generateId(),
       type: 'pureNode',
@@ -336,17 +392,25 @@ export function createNodeFromType(type: string, position: XYPosition): Node {
   };
 }
 
+// ─── Sidebar categories ──────────────────────────────────────────────
+
+/** A single node entry in the sidebar palette. */
 export interface SidebarNodeEntry {
-  type: string;
-  label: string;
-  category: string;
+  type: string;     // Template key (must match a key in `templates`)
+  label: string;    // Display name
+  category: string; // Node category (for color-coding the dot indicator)
 }
 
+/** A collapsible section in the sidebar. */
 export interface SidebarCategory {
   name: string;
   items: SidebarNodeEntry[];
 }
 
+/**
+ * The list of categories displayed in the sidebar.
+ * Order matters — this is the order they appear in the UI.
+ */
 export const sidebarCategories: SidebarCategory[] = [
   {
     name: 'Events',

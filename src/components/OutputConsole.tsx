@@ -1,3 +1,21 @@
+/**
+ * Output console component.
+ *
+ * A floating panel (positioned bottom-right via React Flow's <Panel>)
+ * that displays messages emitted during graph execution. Messages are
+ * stored in `outputStore` and rendered here in order.
+ *
+ * Message styling:
+ *   - System messages (starting with ▶ or ⚠) get a muted style
+ *   - Empty string indicators "(empty string)" get a dimmed style
+ *   - Regular output gets the default style
+ *
+ * Auto-scroll: the panel automatically scrolls to the bottom when
+ * new messages are added (via a useEffect on the messages array).
+ *
+ * The "Clear" button calls `outputStore.clearMessages()` to wipe
+ * all messages. The executor calls `clearMessages()` before each run.
+ */
 import { useEffect, useRef } from 'react';
 import { Panel } from '@xyflow/react';
 import { useOutputStore } from '../store/outputStore';
@@ -8,6 +26,7 @@ export function OutputConsole() {
   const clearMessages = useOutputStore((s) => s.clearMessages);
   const bodyRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (bodyRef.current) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -28,6 +47,7 @@ export function OutputConsole() {
             <div className="output-console__empty">Output will appear here after running...</div>
           ) : (
             messages.map((msg, i) => {
+              // Apply different styles based on message content
               let cls = 'output-console__line ';
               if (msg.startsWith('▶') || msg.startsWith('⚠')) {
                 cls += 'output-console__line--system';
